@@ -147,7 +147,7 @@ function alertTaggle(text) {
   console.log('confirmation ', confirmation);
   if (confirmation === false) {
     stopApplying();
-    console.log('CANCEL alert stop ', cancel);
+    console.log('CANCEL alert stop1 ', cancel);
   } else {
     console.log('CANCEL alert continue', cancel);
     setTimeout(scrollAndCheck, 1000);
