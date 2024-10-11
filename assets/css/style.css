@@ -1,0 +1,43 @@
+body {
+    font-size: 12px;
+    width: 400px;
+}
+pre {
+    font-family: 'Exo';
+}
+
+#tab {
+    width: 70%;
+    margin: 12% auto;
+}
+.lg-title {
+    font-size: clamp(30px, 4vw, 54px);
+    line-height: 1.2;
+    font-weight: 400;
+    color: #49495e;
+    margin-bottom: 20px;
+    display: block;
+}
+
+#tab p{
+    margin: 0 0 30px;
+    font-size: 13px;
+    color: #525252;
+    line-height: 1.55;
+
+}
+.gredient-btn {
+    background: linear-gradient(45deg, #525eba, #26b9d8);
+    color: #fff !important;
+    border-radius: 30px;
+    padding: 8px 30px !important;
+    border: none;
+    cursor: pointer;
+    transition: .35s;
+    box-shadow: 0 3px 15px rgb(0 0 0 / 0%);
+    font-size: 14px;
+    border: 2px solid #fff;
+}
+a {
+	text-decoration: none;
+}
