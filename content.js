@@ -1,27 +1,24 @@
-let cancel = false
-
+let cancel = false;
 
 function startApplying() { 
-  console.log('startetApplying()') 
-  cancel = false
-  scrollAndCheck();
-}
+    console.log('startApplying()'); 
+    cancel = false;
+    // Ensure buttons are visible
+    document.getElementById('startButton').style.display = 'block';
+    document.getElementById('stopButton').style.display = 'block';
+    scrollAndCheck();
+  }
 
 function stopApplying() {
-  console.log('stopApplying()') 
-  cancel = true
-  alert("application stopped!")
+  console.log('stopApplying()'); 
+  cancel = true;
+  alert("Application stopped!");
 }
 
 async function applyToJobs() {
-  console.log('applyToJobs() start') 
-  // const element = document.querySelector(".jobs-search-results-list");
-  // element.scrollTop = element.scrollHeight;
-  const jobCardElements = document.querySelectorAll(
-    '[data-view-name="job-card"]'
-  );
-  console.log('jobCardElements ', jobCardElements)
-
+  console.log('applyToJobs() start'); 
+  const jobCardElements = document.querySelectorAll('[data-view-name="job-card"]');
+  console.log('jobCardElements ', jobCardElements);
 
   for (let i = 0; i < jobCardElements.length; i++) {
     if (cancel) {
@@ -29,38 +26,34 @@ async function applyToJobs() {
       break;
     }
     const element = jobCardElements[i];
-    console.log(`element${i}`, element) 
+    console.log(`element${i}`, element); 
     element.click();
 
     await delay(1000); // Wait after clicking apply button
 
-       const steps = [
-        ".jobs-apply-button",
-        "[data-easy-apply-next-button]",
-        '[aria-label="Review your application"]',
-        '[aria-label="Submit application"]'
-      ];
+    const steps = [
+      ".jobs-apply-button",
+      "[data-easy-apply-next-button]",
+      '[aria-label="Review your application"]',
+      '[aria-label="Submit application"]'
+    ];
 
-      for (let step of steps) {
-        if (cancel) {
-          console.log('applyToJobs execution stopped during steps.');
-          break; // Exit the loop if cancelled
-        }
-
-        if (!areAllInputsFilled()) {
-          alert("Please fill out all required fields before continuing.");
- 
-        }
-  
-        await handleButtonClick(step, i, cancel);
-        await delay(1000); // Wait after each button click
+    for (let step of steps) {
+      if (cancel) {
+        console.log('applyToJobs execution stopped during steps.');
+        break; // Exit the loop if cancelled
       }
-       
 
-    console.log('applyToJobs() ends') 
+      if (!areAllInputsFilled()) {
+        showMissingFieldsForm();
+        return; // Stop further execution until the form is filled
+      }
 
+      await handleButtonClick(step, i);
+      await delay(1000); // Wait after each button click
+    }
   }
- 
+  console.log('applyToJobs() ends'); 
 }
 
 function scrollAndCheck() {
@@ -68,10 +61,8 @@ function scrollAndCheck() {
     console.log('scrollAndCheck execution stopped.');
     return;
   }
-  console.log('scrollAndCheck()') 
+  console.log('scrollAndCheck()'); 
   const container = document.querySelector(".jobs-search-results-list");
-
-  // Scroll by 20%
   container.scrollTop += container.scrollHeight * 0.2;
 
   const targetElement = document
@@ -81,18 +72,16 @@ function scrollAndCheck() {
 
   if (targetElement) {
     console.log("Element found. Stopping scroll.");
-    applyToJobs()
+    applyToJobs();
   } else {
-    moreDataRequiest ()
+    moreDataRequest();
   }
 }
-
 
 async function handleButtonClick(selector, i) {
   console.log('handleButtonClick() for selector:', selector);
   
   let element;
-  // Attempt to find the element and retry if it's not found immediately
   for (let attempt = 0; attempt < 3; attempt++) {
     element = document.querySelector(selector);
     if (element) break; // Exit if the element is found
@@ -111,67 +100,81 @@ async function handleButtonClick(selector, i) {
   }
 }
 
-
-
-
-
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
- 
- 
-
-function moreDataRequiest () {
-  console.log('moreDataRequiest()') 
-   alertTaggle ('No required data: OK for continue, CANCEL for  stop')
-
-}
-
-function alertTaggle (text) {
-  console.log('alertTaggle()') 
-  let conformation = confirm(text)
-  console.log('conformation ', conformation)
-  if(conformation == false) {
-      stopApplying()
-      console.log('CANCEL alert stop ', cancel)
-  } else {
-    console.log('CANCEL alkert continue', cancel)
-    setTimeout(scrollAndCheck, 1000)
-  }
+function moreDataRequest() {
+  console.log('moreDataRequest()'); 
+  alertTaggle('No required data: OK to continue, CANCEL to stop');
 }
 
 function alertTaggle(text) {
-  console.log('alertTaggle()');
+  console.log('alertTaggle()'); 
   let confirmation = confirm(text);
   console.log('confirmation ', confirmation);
   if (confirmation === false) {
     stopApplying();
-    console.log('CANCEL alert stop1 ', cancel);
+    console.log('CANCEL alert stop ', cancel);
   } else {
     console.log('CANCEL alert continue', cancel);
     setTimeout(scrollAndCheck, 1000);
   }
 }
 
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "executeFunction") {
-    startApplying();
-  } else if (request.action === "stopFunction") {
-    stopApplying()
-   } else {
-    alert('Error!!')
-  }
-});
-
-
 function areAllInputsFilled() {
-  const inputs = document.querySelectorAll('input, textarea, select'); // Select all input, textarea, and select elements
+    console.log('areAllInputsFilled ')
+  const inputs = document.querySelectorAll('input, textarea, select');
   for (const input of inputs) {
-    if (!input.value.trim()) { // Check if the input is empty or contains only whitespace
+    if (!input.value.trim()) {
+
+        console.log('INPUT ', input)
       return false; // Return false if any input is empty
     }
   }
   return true; // Return true if all inputs are filled
 }
+
+// New function to show a form for missing fields
+function showMissingFieldsForm() {
+    const missingFields = Array.from(document.querySelectorAll('input, textarea, select')).filter(input => !input.value.trim());
+    
+    console.log('Missing fields:', missingFields); // Debugging line
+  
+    if (missingFields.length > 0) {
+      const formHtml = `
+        <div id="missingFieldsModal">
+          <h3>Please fill out the following fields:</h3>
+          ${missingFields.map(field => `
+            <div>
+              <label>${field.placeholder || 'Field'}:</label>
+              <input type="text" value="${field.value}" data-field-name="${field.name}" />
+            </div>
+          `).join('')}
+          <button id="submitMissingFields">Submit</button>
+          <button id="cancelMissingFields">Cancel</button>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', formHtml);
+      
+      // Add event listeners for buttons
+      document.getElementById('submitMissingFields').onclick = () => {
+        // Logic for submitting the form
+      };
+  
+      document.getElementById('cancelMissingFields').onclick = () => {
+        // Logic for canceling the form
+      };
+    }
+  }
+
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "executeFunction") {
+        startApplying();
+    } else if (request.action === "stopFunction") {
+        stopApplying();
+    } else {
+        alert('Error!!');
+    }
+});

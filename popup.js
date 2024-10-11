@@ -1,14 +1,12 @@
-document.getElementById("sendMessageButton").addEventListener("click", () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, { action: "executeFunction" });
-    });
+document.addEventListener('DOMContentLoaded', () => {
+  const openButtonsWindow = document.getElementById('openButtonsWindow');
+
+  openButtonsWindow.addEventListener('click', () => {
+      chrome.windows.create({
+          url: chrome.runtime.getURL("buttons.html"),
+          type: "popup",
+          width: 400,
+          height: 300
+      });
   });
-  
-  document.getElementById("stopApplyingButton").addEventListener("click", () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, { action: "stopFunction" });
-    });
-  });
-  
-  
-  
+});
