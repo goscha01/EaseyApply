@@ -276,9 +276,9 @@ var atoModel = `<div id="job-auto" class="modal">
             $('#linkdin-apply').click(function(){
                 $('#apply_modal input').val('');
             });
-            // click on Save button
+            // click on Save button            
             $('#apply_modal button.btn-primary').on('click', function () {
-                
+                console.log("jhhhhh")
                 $('#apply_modal button.btn-primary').attr('disabled', true).text('Processing');
                 var skills = $('#apply_modal input[name="skills"]').val();
                 var job_location = $('#apply_modal input[name="job_location"]').val();

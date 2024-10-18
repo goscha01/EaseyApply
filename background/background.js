@@ -25,7 +25,7 @@ var chatgpt_json = {
 // Function to get the user ID from cookies
 function getCookies(domain, name, callback) {
   chrome.cookies.get({ "url": domain, "name": name }, function (cookie) {
-    console.log(cookie);
+    // console.log(cookie);
     if (callback) {
       if (cookie && cookie.value) {
         callback(cookie.value);
@@ -160,6 +160,8 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   } else if ( message.type == "getAnswersFromchatgpt") {
     sendResponse(chatgpt_json);
     return true;
+  } else if(message.type == "stop_background_proccess"){
+    chrome.runtime.reload();
   }
 });
 
@@ -174,12 +176,14 @@ function updateTabUrl(allJobLinks , currentTabId) {
     // Check if currentIndex equals allJobLinks.length, and if so, skip the update and go to the else condition.
     if (currentIndex == jobCount) {
         console.log("All URLs updated");
-        // You can perform additional actions or send a response if needed
-        // chrome.tabs.onUpdated.addListener(onComplete);
-        chrome.tabs.sendMessage(currentTabId,{action:"tabComplete"},function(){
-          console.log("message has send")
-        })
-        return; // Exit the function early
+        let processStart = "";
+        var data = {
+          process_start: processStart
+      };
+          chrome.storage.local.set({ jobData: data }, function() {
+              console.log("Data saved to Chrome storage:", data);
+          });
+        return;
     }else{
       console.log(currentIndex,jobCount)
       console.log("kkkkkkkkkkkkk")

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Quick Apply jobs",
+  "name": "Quick Apply jobs new extension",
   "short_name": "Quick Apply jobs",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Apply to 100’s of jobs in just one click… Automate your application for Job with the lifetime job application system QuickApplyJobs.",
   "background": {
     "service_worker": "background/bg-loader.js"
@@ -15,7 +15,7 @@
   "action": {
     "browser_style": false,
     "default_title": "initial",
-    "default_popup": "/index.html"
+    "default_popup": "pop-up.html"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
