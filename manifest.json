@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Quick Apply jobs new extension",
-  "short_name": "Quick Apply jobs",
-  "version": "1.0.6",
-  "description": "Apply to 100’s of jobs in just one click… Automate your application for Job with the lifetime job application system QuickApplyJobs.",
+  "name": "EasyApply",
+  "short_name": "EasyApply",
+  "version": "1.0",
+  "description": "Apply to 100’s of jobs application system EasyApply.",
   "background": {
     "service_worker": "background/bg-loader.js"
   },
@@ -22,25 +22,17 @@
   },
   "permissions": [
     "tabs",
-    "activeTab",
     "storage",
     "cookies",
-    "alarms",
-    "clipboardRead",
-    "clipboardWrite"
+    "alarms"
   ],
   "host_permissions": [
-    "https://*/*",
-    "http://*/*",
     "<all_urls>",
-    "*://*.app.quickapplyjobs.com/*",
-    "*://*.sachinkumar.me/*",
-    "*://*.linkedin.com/*",
-    "*://*.127.0.0.1/*"
+    "*://*.linkedin.com/*"
   ],
   "content_scripts": [
     {
-      "matches": ["*://*.linkedin.com/*","*://*.app.quickapplyjobs.com/*","*://*.sachinkumar.me/*" ,"*://*/*" ],
+      "matches": ["*://*.linkedin.com/*","*://*/*" ],
       "js": [
         "/assets/js/jquery-3.4.1.min.js",
         "/config.js",
