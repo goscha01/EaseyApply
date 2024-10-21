@@ -81,38 +81,38 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (message.type == 'applyLinkedin') {
       let data = message.data;
       console.log("data-new",data)
- 
-      getCookies(siteUrl, "user_id", function (id) {
-          user_id = id;
-          console.log(user_id);
-          if(user_id != undefined && user_id != ''){
-              data.user_id = parseInt(user_id);
-              console.log("new-data",data);
-              const init = {
-                method: 'GET',
-                async: true,
-                headers: {
-                  'Content-Type': 'application/json',
-                }
-              };
+      openLinkedinTab(data);
+      // getCookies(siteUrl, "user_id", function (id) {
+      //     user_id = id;
+      //     console.log(user_id);
+      //     if(user_id != undefined && user_id != ''){
+      //         data.user_id = parseInt(user_id);
+      //         console.log("new-data",data);
+      //         const init = {
+      //           method: 'GET',
+      //           async: true,
+      //           headers: {
+      //             'Content-Type': 'application/json',
+      //           }
+      //         };
                 
-             const url = `https://quickapplyforjobs.com/api/user/${user_id}`;
-            // const url = `https://apis.alturaautomotive.com/demo/public/api/user/6`;
-             console.log(url);
-              fetch(url, init)
-              .then(response => response.json())
-              .then(response => {
-                console.log(response);
-                if (response) {
-                  resume = response.data.resume_details;
-                  additionalInfo = response.data;
-                  openLinkedinTab(data,resume,additionalInfo,);
-                } else {
-                  console.warn('Data not saved');
-                }
-              }); 
-          }
-        })
+      //        const url = `https://quickapplyforjobs.com/api/user/${user_id}`;
+      //       // const url = `https://apis.alturaautomotive.com/demo/public/api/user/6`;
+      //        console.log(url);
+      //         fetch(url, init)
+      //         .then(response => response.json())
+      //         .then(response => {
+      //           console.log("response11111SS",response);
+      //           if (response) {
+      //             resume = response.data.resume_details;
+      //             additionalInfo = response.data;
+                  
+      //           } else {
+      //             console.warn('Data not saved');
+      //           }
+      //         }); 
+      //     }
+      //   })
   }else if(message.type == 'resumeUrl'){
     console.log(message);
     let tabId = sender.tab.id;
@@ -241,7 +241,7 @@ async function fetchData(tabId,fileUrl) {
   chrome.tabs.sendMessage(tabId,{'type':'uploadDoc',data:dataArray})
 }
 
-function openLinkedinTab(data,resume,additionalInfo){
+function openLinkedinTab(data){
     let url = `https://www.linkedin.com/jobs/search/?`
     var filter = '';  
     var keyword = '';
@@ -343,8 +343,8 @@ function linkedinTabListener(tabId, changeInfo, tab) {
       type: 'searchJobs',
       from: 'background',
       jobCount:jobCount,
-      resume:resume,
-      additionalInfo:additionalInfo,
+      resume:resume?resume:"",
+      additionalInfo:additionalInfo?additionalInfo:"",
       
     });
     chrome.tabs.onUpdated.removeListener(linkedinTabListener);
