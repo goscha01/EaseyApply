@@ -115,25 +115,25 @@ var atoModel = `<div id="job-auto" class="modal">
                     if($('.artdeco-modal.artdeco-modal--layer-default')){
                         let dismissButton = $('.artdeco-modal.artdeco-modal--layer-default').find('button[aria-label="Dismiss"]');
     
-                        if (dismissButton.length) {
-                            dismissButton.click();
+                        if ($(dismissButton).length > 0) {
+                            $(dismissButton).click();
                             setTimeout(() => {
-                                $("#scanningModal").css("display", "none");
+                                if($("#scanningModal").length > 0){
+                                    $("#scanningModal").css("display", "none");
+                                }
+                                
                                 this.showProcessComplete();
                             }, 2000);
                         } else {
                             console.log("Dismiss button not found!");
+                            this.showProcessComplete();
                         }
                        
                     }
                     else{
                         this.showProcessComplete();
                     }
-                    setTimeout(() => {
-                        chrome.runtime.sendMessage({
-                            type: 'stop_background_proccess',                                                                                                                                                                                                                                                                                                          
-                        })
-                    }, 2000);
+                   
                     
                 }
             })
