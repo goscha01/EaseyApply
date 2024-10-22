@@ -110,8 +110,31 @@ var atoModel = `<div id="job-auto" class="modal">
                 } else if(message.action == "tabUpdated"){
                     console.log("updated");                    
                     this.autoFillQuestions(message.additionalInfo);                   
-                }else if(message.action == "tabComplete"){
+                }else if(message.action == "processComplete"){
                     console.log("status complete")
+                    if($('.artdeco-modal.artdeco-modal--layer-default')){
+                        let dismissButton = $('.artdeco-modal.artdeco-modal--layer-default').find('button[aria-label="Dismiss"]');
+    
+                        if (dismissButton.length) {
+                            dismissButton.click();
+                            setTimeout(() => {
+                                $("#scanningModal").css("display", "none");
+                                this.showProcessComplete();
+                            }, 2000);
+                        } else {
+                            console.log("Dismiss button not found!");
+                        }
+                       
+                    }
+                    else{
+                        this.showProcessComplete();
+                    }
+                    setTimeout(() => {
+                        chrome.runtime.sendMessage({
+                            type: 'stop_background_proccess',                                                                                                                                                                                                                                                                                                          
+                        })
+                    }, 2000);
+                    
                 }
             })
         },
@@ -359,7 +382,6 @@ var atoModel = `<div id="job-auto" class="modal">
                     
                    
                     console.log(job_links,"job links");
-        
                     // Add the current page's job links to the overall list
                     allJobLinks = allJobLinks.concat(job_links);
                     console.log(allJobLinks);
@@ -974,7 +996,64 @@ var atoModel = `<div id="job-auto" class="modal">
         getFileExtension: function (url) {
             // Implement a function to extract the file extension from the URL
             return url.slice(((url.lastIndexOf(".") - 1) >>> 0) + 2).toLowerCase();
+        },
+        showProcessComplete: function() {
+            // Create a popup container
+            var popup = document.createElement("div");
+            popup.style.position = "fixed";
+            popup.style.left = "0";
+            popup.style.top = "0";
+            popup.style.width = "100%";
+            popup.style.height = "100%";
+            popup.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+            popup.style.zIndex = "999";
+            popup.style.display = "flex";
+            popup.style.alignItems = "center";
+            popup.style.justifyContent = "center";
+        
+            // Create popup content box
+            var popupContent = document.createElement("div");
+            popupContent.style.backgroundColor = "white";
+            popupContent.style.padding = "20px";
+            popupContent.style.border = "1px solid #888";
+            popupContent.style.width = "300px";
+            popupContent.style.textAlign = "center";
+            popupContent.style.borderRadius = "10px";
+            popupContent.innerHTML = "<p>Congratulations! Your process is complete.</p>";
+        
+            // Create a close button
+            var closeButton = document.createElement("span");
+            closeButton.innerHTML = "&times;";
+            closeButton.style.color = "#aaa";
+            closeButton.style.fontSize = "28px";
+            closeButton.style.fontWeight = "bold";
+            closeButton.style.cursor = "pointer";
+            closeButton.style.position = "absolute";
+            closeButton.style.right = "10px";
+            closeButton.style.top = "10px";
+        
+            // Append close button to popup content
+            popupContent.appendChild(closeButton);
+            
+            // Append popup content to popup container
+            popup.appendChild(popupContent);
+        
+            // Append popup to body
+            document.body.appendChild(popup);
+        
+            // Close the popup when the close button is clicked
+            closeButton.onclick = function() {
+                popup.remove();
+            };
+        
+            // Close the popup if clicked outside of the content area
+            popup.onclick = function(event) {
+                if (event.target == popup) {
+                    popup.remove();
+                }
+            };
         }
+        
 
         // setProgressBar: function () {
         //     progrressInterval = setInterval(() => {
