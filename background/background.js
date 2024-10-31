@@ -79,9 +79,11 @@ function reloadAllTabsOnStartUp() {
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   // save apply Linkedin data
   if (message.type == 'applyLinkedin') {
+
     let data = message.data;
     console.log("data-new", data)
     openLinkedinTab(data);
+
     // getCookies(siteUrl, "user_id", function (id) {
     //     user_id = id;
     //     console.log(user_id);
@@ -150,18 +152,23 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       currentTabId = tabs[0].id;
       console.log(currentTabId);
       var allJobLinks = message.linksArray;
-      console.log(allJobLinks, "all jobs limks");
-      // Start updating the tab URL
-      currentIndex = 0;
-      console.log(currentTabId, "current tab id");
-      updateTabUrl(allJobLinks, currentTabId);
-      sendResponse({ response: "Tab update process started" });
+      chrome.storage.local.set({ allJobLinks: allJobLinks }, function () {
+        console.log(allJobLinks, "all jobs limks");
+        // Start updating the tab URL
+        currentIndex = 0;
+        console.log(currentTabId, "current tab id");
+        updateTabUrl(allJobLinks, currentTabId);
+        sendResponse({ response: "Tab update process started" });
+      });
+
     })
   } else if (message.type == "getAnswersFromchatgpt") {
     sendResponse(chatgpt_json);
     return true;
   } else if (message.type == "stop_background_proccess") {
     chrome.runtime.reload();
+  } else if (message.type == "stop_linkedIn_proccess") {
+    chrome.tabs.remove(sender.tab.id)
   }
 });
 
@@ -185,11 +192,7 @@ function updateTabUrl(allJobLinks, currentTabId) {
         chrome.tabs.sendMessage(currentTabId, { action: "processComplete" })
       });
       return;
-    } else {
-      console.log(currentIndex, jobCount)
-      console.log("kkkkkkkkkkkkk")
-
-    }
+    } 
     if (allJobLinks[currentIndex]) {
       const newUrl = allJobLinks[currentIndex];
 

@@ -62,6 +62,9 @@ var atoModel = `<div id="job-auto" class="modal">
 
 
 
+
+
+
 // additionalInfo = message.additionalInfo;
 (function ($) {
     const Module = {
@@ -73,9 +76,10 @@ var atoModel = `<div id="job-auto" class="modal">
             //$this.filtersJobs(5);
             //$this.autoFillQuestions(additionalInfo);
             // Listen for message to reload current page
-            chrome.runtime.onMessage.addListener((message, sender, send_response)=> {
+            chrome.runtime.onMessage.addListener((message, sender, send_response) => {
                 // save apply Linkedin data
                 if (message.type == 'searchJobs' && message.from == 'background') {
+                    $this.createStopButton();
                     resume = message.resume;
                     additionalInfo = message.additionalInfo;
                     phone = additionalInfo.phone;
@@ -87,7 +91,7 @@ var atoModel = `<div id="job-auto" class="modal">
                     additionalInfo = message.additionalInfo;
                     currentSalary = additionalInfo.current_salary;
                     expectedSalary = additionalInfo.expected_salary;
-                    noticePeriod =  additionalInfo.notice_period;
+                    noticePeriod = additionalInfo.notice_period;
                     workExperience = additionalInfo.experience;
                     coverLetter = "This is cover letter";
                     // expectedSalary = additionalInfo.expected_salary;
@@ -95,10 +99,11 @@ var atoModel = `<div id="job-auto" class="modal">
                     noticePeriod = 30;
                     coverLetter = null;
                     job_count = message.jobCount;
-                    console.log("job_count----",job_count)
-                    
+                    console.log("job_count----", job_count)
+
                     setTimeout(() => {
                         $this.filtersJobs(job_count);
+                        
                     }, 4000);
 
                 } else if (message.type == 'uploadDoc') {
@@ -107,181 +112,183 @@ var atoModel = `<div id="job-auto" class="modal">
                     console.log(dataArray);
                     console.log(cv);
                     $this.uploadResume(dataArray, cv)
-                } else if(message.action == "tabUpdated"){
-                    console.log("updated");                    
-                    this.autoFillQuestions(message.additionalInfo);                   
-                }else if(message.action == "processComplete"){
+                } else if (message.action == "tabUpdated") {
+                    console.log("updated");
+                    this.autoFillQuestions(message.additionalInfo);
+                } else if (message.action == "processComplete") {
                     console.log("status complete")
-                    if($('.artdeco-modal.artdeco-modal--layer-default')){
+                    if ($('.artdeco-modal.artdeco-modal--layer-default')) {
                         let dismissButton = $('.artdeco-modal.artdeco-modal--layer-default').find('button[aria-label="Dismiss"]');
-    
+
                         if ($(dismissButton).length > 0) {
                             $(dismissButton).click();
                             setTimeout(() => {
-                                if($("#scanningModal").length > 0){
+                                if ($("#scanningModal").length > 0) {
                                     $("#scanningModal").css("display", "none");
                                 }
-                                
+                                $("#stopButton").hide();
                                 this.showProcessComplete();
                             }, 2000);
                         } else {
                             console.log("Dismiss button not found!");
+                            $("#stopButton").hide()
                             this.showProcessComplete();
                         }
-                       
+
                     }
-                    else{
+                    else {
+                        $("#stopButton").hide()
                         this.showProcessComplete();
                     }
-                   
-                    
+
+
                 }
             })
         },
         autoFillQuestions: function (additionalInfo) {
             setTimeout(() => {
                 const applyButtonInterval = setInterval(() => {
-                const applyButtons = $('button:not([disabled]).jobs-apply-button.artdeco-button.artdeco-button');
+                    const applyButtons = $('button:not([disabled]).jobs-apply-button.artdeco-button.artdeco-button');
 
-                // Check if there are apply buttons available
-                if (applyButtons.length > 0) {
-                    const applyButtonToClick = applyButtons.eq(0);
-                    applyButtonToClick.click();
-                    applyButtonToClick.click();
-                    applyButtonToClick.click();
-                    clearInterval(applyButtonInterval);                         
-                    const modelInterval = setInterval(() => { 
-                        this.reviewButton();
-                        this.clickNextButton();                            
-                        this.uploadSingleFileToInput(cv);
-                        clearInterval(modelInterval);
+                    // Check if there are apply buttons available
+                    if (applyButtons.length > 0) {
+                        const applyButtonToClick = applyButtons.eq(0);
+                        applyButtonToClick.click();
+                        applyButtonToClick.click();
+                        applyButtonToClick.click();
+                        clearInterval(applyButtonInterval);
+                        const modelInterval = setInterval(() => {
+                            this.reviewButton();
+                            this.clickNextButton();
+                            this.uploadSingleFileToInput(cv);
+                            clearInterval(modelInterval);
 
-                        // NEW CODE START HERE FROM SOBI
-                        const MODEL_MAIN = 'div[data-test-modal-id="easy-apply-modal"]'; // MAIN MODEL DIV SELECTOR
-                        
-                        const MODEL_QUESTIONS_LI = '.jobs-easy-apply-form-section__grouping'; // INNER LI OF QUESTIONS
-                        setTimeout ( () => {
-                            if($(MODEL_MAIN).find(MODEL_QUESTIONS_LI).length > 0) {
-                                $(MODEL_MAIN).find(MODEL_QUESTIONS_LI).each(function (index, i) {
-                                setTimeout ( () => {
-                                    //console.log($(this).find('label:contains("experience")').length);
-                                    // FOR NUMERIC VALUES
-                                    let numeric_question_text = $(this).find('label[for*="-numeric"]').text();
-                                    console.log(numeric_question_text);                                    
-                                    const $inputWorkExperienceElement = $(this).find('label[for*="-numeric"]').next('input[type="text"]'); 
-                                    if ($inputWorkExperienceElement.length > 0) {
-                                        chrome.runtime.sendMessage({ type: "getAnswersFromchatgpt", question: numeric_question_text }, function(response) {
-                                            console.log(response.answers.experience);
-                                            let answer_value = 0;
-                                            if (numeric_question_text.includes("experience work")) {
-                                                
-                                            } 
+                            // NEW CODE START HERE FROM SOBI
+                            const MODEL_MAIN = 'div[data-test-modal-id="easy-apply-modal"]'; // MAIN MODEL DIV SELECTOR
 
-                                            if (numeric_question_text.includes("expected salary")) {
-                                                answer_value = response.answers.expected_salary;
-                                            }
-
-                                            if (/experience.*work|work.*experience/.test(numeric_question_text)) {
-                                                answer_value = response.answers.experience;
-                                            }
-
-                                            if (/current.*salary|salary.*current/.test(numeric_question_text)) {
-                                                answer_value = response.answers.current_salary;
-                                            }
-
-                                            if (/expected.*salary|salary.*expected/.test(numeric_question_text)) {
-                                                answer_value = response.answers.expected_salary;
-                                            }                                            
-
-                                            if (/preferred.*salary|preferred.*expected/.test(numeric_question_text)) {
-                                                answer_value = response.answers.expected_salary;
-                                            }
-                                            console.log(answer_value,"AAAAAAAAA");
-                                            navigator.clipboard.writeText(answer_value).then(() => {
-                                                $inputWorkExperienceElement.focus();
-                                                $inputWorkExperienceElement.select();
-                                                document.execCommand('paste');
-                                            });
-                                            $(".artdeco-modal .artdeco-button__text").click();
-                                        });
-                                        
-                                    } else if ($(this).find('select[id]').length > 0 )   {
-                                        let select = $(this).find('select[id]');
-                                        select.each(function (index) {
-                                            setTimeout( () => {
-                                                select.prop("selectedIndex", 1);
-                                                select.trigger("change");
-                                                select.vchange();
-                                            }, 1000)
-                                        });                    
-                                    } else if($(this).find('label[data-test-text-selectable-option__label]').length > 0 ) {
-                                        const radiobutton = $(this).find('label[data-test-text-selectable-option__label="No"]');
-                                        radiobutton.mclick();
-                                    }   else {
-                                        console.log("nothings");
-                                    } 
-                                }, 1000);
-                                })
-                            }
+                            const MODEL_QUESTIONS_LI = '.jobs-easy-apply-form-section__grouping'; // INNER LI OF QUESTIONS
                             setTimeout(() => {
-                                this.submitModelform();
-                            }, 7000);     
-                        }, 8000)
+                                if ($(MODEL_MAIN).find(MODEL_QUESTIONS_LI).length > 0) {
+                                    $(MODEL_MAIN).find(MODEL_QUESTIONS_LI).each(function (index, i) {
+                                        setTimeout(() => {
+                                            //console.log($(this).find('label:contains("experience")').length);
+                                            // FOR NUMERIC VALUES
+                                            let numeric_question_text = $(this).find('label[for*="-numeric"]').text();
+                                            console.log(numeric_question_text);
+                                            const $inputWorkExperienceElement = $(this).find('label[for*="-numeric"]').next('input[type="text"]');
+                                            if ($inputWorkExperienceElement.length > 0) {
+                                                chrome.runtime.sendMessage({ type: "getAnswersFromchatgpt", question: numeric_question_text }, function (response) {
+                                                    console.log(response.answers.experience);
+                                                    let answer_value = 0;
+                                                    if (numeric_question_text.includes("experience work")) {
+
+                                                    }
+
+                                                    if (numeric_question_text.includes("expected salary")) {
+                                                        answer_value = response.answers.expected_salary;
+                                                    }
+
+                                                    if (/experience.*work|work.*experience/.test(numeric_question_text)) {
+                                                        answer_value = response.answers.experience;
+                                                    }
+
+                                                    if (/current.*salary|salary.*current/.test(numeric_question_text)) {
+                                                        answer_value = response.answers.current_salary;
+                                                    }
+
+                                                    if (/expected.*salary|salary.*expected/.test(numeric_question_text)) {
+                                                        answer_value = response.answers.expected_salary;
+                                                    }
+
+                                                    if (/preferred.*salary|preferred.*expected/.test(numeric_question_text)) {
+                                                        answer_value = response.answers.expected_salary;
+                                                    }
+                                                    console.log(answer_value, "AAAAAAAAA");
+                                                    navigator.clipboard.writeText(answer_value).then(() => {
+                                                        $inputWorkExperienceElement.focus();
+                                                        $inputWorkExperienceElement.select();
+                                                        document.execCommand('paste');
+                                                    });
+                                                    $(".artdeco-modal .artdeco-button__text").click();
+                                                });
+
+                                            } else if ($(this).find('select[id]').length > 0) {
+                                                let select = $(this).find('select[id]');
+                                                select.each(function (index) {
+                                                    setTimeout(() => {
+                                                        select.prop("selectedIndex", 1);
+                                                        select.trigger("change");
+                                                        select.vchange();
+                                                    }, 1000)
+                                                });
+                                            } else if ($(this).find('label[data-test-text-selectable-option__label]').length > 0) {
+                                                const radiobutton = $(this).find('label[data-test-text-selectable-option__label="No"]');
+                                                radiobutton.mclick();
+                                            } else {
+                                                console.log("nothings");
+                                            }
+                                        }, 1000);
+                                    })
+                                }
+                                setTimeout(() => {
+                                    this.submitModelform();
+                                }, 7000);
+                            }, 8000)
 
 
 
-                          // this.appendPhoneVal();
-                          // this.appendAddressVal();
-                          // this.appendCityval();
-                          //this.appendPostalCodeVal();
-                          //this.currentSalaryVal();
-                         // this.expectedSalaryVal();
-                          //this.workingKnowledge();
-                          //this.jobLocationComfortable();
-                          //this.configuringManaging();
-                          //this.internPosition();
-                         // this.applicationSent();
-                         // this.noticePeriodVal();
-                         
-                          // setTimeout(() => {
-                          //     this.workExperience();
-                          // }, 2000);
+                            // this.appendPhoneVal();
+                            // this.appendAddressVal();
+                            // this.appendCityval();
+                            //this.appendPostalCodeVal();
+                            //this.currentSalaryVal();
+                            // this.expectedSalaryVal();
+                            //this.workingKnowledge();
+                            //this.jobLocationComfortable();
+                            //this.configuringManaging();
+                            //this.internPosition();
+                            // this.applicationSent();
+                            // this.noticePeriodVal();
 
-                          
-                          // setTimeout(() => {
-                          //     this.radiobuttonFilled();
-                          // }, 2500);
-
-                          // setTimeout(() => {
-                          //     this.selectboxFilled();
-                          // }, 3500);
-
-                        // setTimeout(() => {
-                        //   this.sameSalary();
-                        // }, 4000);
-
-                        // setTimeout(() => {
-                        //     this.hybridsetting();
-                        // }, 5000);
-
-                        // setTimeout(() => {
-                        //     this.submitModelform();
-                        // }, 7000);
-
-                        // setTimeout(() => {
-                        //   this.notFoundInDomVal();
-                        // }, 8000);                              
+                            // setTimeout(() => {
+                            //     this.workExperience();
+                            // }, 2000);
 
 
-                        // setTimeout(() => {
-                        //     this.reviewButton();
-                        //     this.clickNextButton();
-                        // }, 12000);
+                            // setTimeout(() => {
+                            //     this.radiobuttonFilled();
+                            // }, 2500);
 
-                    }, 3000)   
-                  }
+                            // setTimeout(() => {
+                            //     this.selectboxFilled();
+                            // }, 3500);
 
-              }, 1000); // Adjust the interval as needed
+                            // setTimeout(() => {
+                            //   this.sameSalary();
+                            // }, 4000);
+
+                            // setTimeout(() => {
+                            //     this.hybridsetting();
+                            // }, 5000);
+
+                            // setTimeout(() => {
+                            //     this.submitModelform();
+                            // }, 7000);
+
+                            // setTimeout(() => {
+                            //   this.notFoundInDomVal();
+                            // }, 8000);                              
+
+
+                            // setTimeout(() => {
+                            //     this.reviewButton();
+                            //     this.clickNextButton();
+                            // }, 12000);
+
+                        }, 3000)
+                    }
+
+                }, 1000); // Adjust the interval as needed
             }, 2000); // Adjust the delay before starting the interval as needed 
         },
 
@@ -296,7 +303,7 @@ var atoModel = `<div id="job-auto" class="modal">
                 $('#toaster').hide();
             });
 
-            $('#linkdin-apply').click(function(){
+            $('#linkdin-apply').click(function () {
                 $('#apply_modal input').val('');
             });
             // click on Save button            
@@ -322,7 +329,7 @@ var atoModel = `<div id="job-auto" class="modal">
 
                 $('#apply_modal button.btn-primary').attr('disabled', false).text('Submit');
                 chrome.runtime.sendMessage({
-                    type: 'applyLinkedin',                                                                                                                                                                                                                                                                                                                                                                                                           
+                    type: 'applyLinkedin',
                     data: data,
                 });
             });
@@ -331,7 +338,7 @@ var atoModel = `<div id="job-auto" class="modal">
         initial: function () { },
 
         filtersJobs: function (job_count) {
-            console.log('job_count - ',job_count);
+            console.log('job_count - ', job_count);
             var jobinterval = setInterval(() => {
                 var jobResultsContainer = $('ul.scaffold-layout__list-container li.scaffold-layout__list-item');
                 if (jobResultsContainer.length > 0) {
@@ -353,35 +360,35 @@ var atoModel = `<div id="job-auto" class="modal">
             }
         },
 
-        profileScanning:async function(){
+        profileScanning: async function () {
             console.log(index);
-            console.log(job_count,"job count for profileScaning ");
-                // Create and append the modal to the body
-   
-                var modal = $('<div id="scanningModal" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: center; z-index: 9999;">Scanning the LinkedIn profiles...</div>');
-                $('#scanningModal').append(modal);
-                $('body').append(modal);
+            console.log(job_count, "job count for profileScaning ");
+            // Create and append the modal to the body
+
+            var modal = $('<div id="scanningModal" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: center; z-index: 9999;">Scanning the LinkedIn profiles...</div>');
+            $('#scanningModal').append(modal);
+            $('body').append(modal);
             var pageNoIndex = 0;
             var allJobLinks = [];
-            
+
             var linksCollectionInterval = setInterval(() => {
                 this.scrollSearch();
                 var All_Jobs = $('ul.scaffold-layout__list-container li.scaffold-layout__list-item:not(:has(span.tvm__text.tvm__text--neutral)');
-                console.log(All_Jobs,"all jobs ss");
+                console.log(All_Jobs, "all jobs ss");
                 setTimeout(() => {
-                   
-                        var filteredLinks = All_Jobs.find('a').filter(function() {
-                            // Filter only <a> tags with href attribute
-                            return $(this).attr('href');
-                        });
-            
-                        // Extract href text from the filtered links
-                        var job_links = filteredLinks.map(function() {
-                            return $(this).attr('href');
-                        }).get();    
-                    
-                   
-                    console.log(job_links,"job links");
+
+                    var filteredLinks = All_Jobs.find('a').filter(function () {
+                        // Filter only <a> tags with href attribute
+                        return $(this).attr('href');
+                    });
+
+                    // Extract href text from the filtered links
+                    var job_links = filteredLinks.map(function () {
+                        return $(this).attr('href');
+                    }).get();
+
+
+                    console.log(job_links, "job links");
                     // Add the current page's job links to the overall list
                     allJobLinks = allJobLinks.concat(job_links);
                     console.log(allJobLinks);
@@ -389,12 +396,12 @@ var atoModel = `<div id="job-auto" class="modal">
                     if (allJobLinks.length < job_count) {
                         console.log("i am come in if condition")
                         pageNoIndex++;
-        
+
                         console.log(pageNoIndex);
                         var specificPageNos = $('ul.artdeco-pagination__pages li[data-test-pagination-page-btn]');
                         var specific_buttons = specificPageNos.find('button');
                         var pagebutton = specific_buttons[pageNoIndex];
-        
+
                         // Check if the button exists before clicking
                         if (pagebutton) {
                             setTimeout(() => {
@@ -405,31 +412,31 @@ var atoModel = `<div id="job-auto" class="modal">
                             // No more pages, clear the interval
                             clearInterval(linksCollectionInterval);
                         }
-        
+
                     } else {
                         console.log("i am come in else conditon")
                         // Reached the desired job_count, clear the interval
                         clearInterval(linksCollectionInterval);
                         setTimeout(() => {
                             $('#scanningModal').hide();
-                            chrome.runtime.sendMessage({type: "updateTab" , linksArray:allJobLinks}, function (response) {
+                            chrome.runtime.sendMessage({ type: "updateTab", linksArray: allJobLinks }, function (response) {
                                 console.log("Message sent from content script to background script:", response);
-                            }); 
+                            });
                         }, 4000);
-                  
+
                     }
                 }, 8000);
             }, 15000);
         },
 
-        
-          
+
+
 
         processJobItems: function (index, job_count) {
-           
-            
+
+
             this.profileScanning();
-           
+
         },
 
         // Call the function with the initial index and job count
@@ -439,11 +446,11 @@ var atoModel = `<div id="job-auto" class="modal">
             return new Promise((resolve) => setTimeout(resolve, ms));
         },
 
-        reviewButton:function() {
+        reviewButton: function () {
             var reviewInterval = setInterval(() => {
                 $('button[aria-label="Review your application"]').click();
             });
-        }, 
+        },
 
         clickNextButton() {
             console.log("click Next Button called");
@@ -452,7 +459,7 @@ var atoModel = `<div id="job-auto" class="modal">
             }, 3000);
         },
 
-        
+
 
         appendPhoneVal: async function () {
             console.log('appendPhoneVal');
@@ -474,55 +481,55 @@ var atoModel = `<div id="job-auto" class="modal">
 
         QuestionsCollector() {
             console.log("QuestionsCollector is called");
-        
+
             // Create an array to store the texts
             var textsArray = [];
-        
+
             var codeInterval = setInterval(async () => {
                 var questionElements = $('.jobs-easy-apply-form-section__grouping');
-        
+
                 // Check if there are more questions to process
                 if (questionElements.length > 0) {
-                  
+
                     questionElements.each(function () {
                         var label = $(this).find('label').text().trim();
                         var spanTitle = $(this).find('span[data-test-form-builder-radio-button-form-component__title]').text().trim();
-        
+
                         if (label && !textsArray.includes(label)) {
                             textsArray.push(label);
                         }
-        
+
                         if (spanTitle && !textsArray.includes(spanTitle)) {
                             textsArray.push(spanTitle);
                         }
                     });
-        
+
                     // Remove empty and duplicate items from the array
                     textsArray = textsArray.filter((text, index, self) => {
                         return text !== '' && index === self.indexOf(text);
                     });
-        
+
                     textsArray.forEach(element => {
                         setTimeout(() => {
                             chrome.runtime.sendMessage({ 'type': 'callGPT', 'qesArray': [element] });
                             clearInterval(codeInterval);
                         }, 5000);
                     });
-        
+
                     // Clear the textsArray after processing
                     textsArray = [];
                 } else {
                     // If there are no more questions, clear the interval
-                  
+
                     console.log('All questions processed.');
                 }
-        
+
                 // Log the final array
                 console.log(textsArray);
-        
+
             }, 2000);
         },
-        
+
 
         appendPostalCodeVal() {
             console.log('appendPostalCodeVal');
@@ -663,9 +670,9 @@ var atoModel = `<div id="job-auto" class="modal">
                     }
                 }
             }, 2000);
-        }, 
+        },
         clickOnRadioButton() {
-           // $('notice period');
+            // $('notice period');
             var numericInterval = setInterval(async () => {
                 const yesradiobtn = $('fieldset[data-test-form-builder-radio-button-form-component="true"]');
                 const selectbtn12 = $('select[id]');
@@ -689,48 +696,48 @@ var atoModel = `<div id="job-auto" class="modal">
 
         notFoundInDomVal() {
             var notFoundInDomValInterval = setInterval(async () => {
-            const notFoundInDomElements = $('.jobs-easy-apply-form-section__grouping');
-            setTimeout(() => {
-                notFoundInDomElements.each(async function() {
-                    const notFoundInDom = $(this);
-        
-                    // Find input elements of type "text" within the current notFoundInDom element
-                    const inputnotFoundInDom = notFoundInDom.find('input[type="text"]');        
-                    if (inputnotFoundInDom.length > 0) {
-                        clearInterval(notFoundInDomValInterval);
-                        // Loop through the input elements within this notFoundInDom element
-                        inputnotFoundInDom.each(function() {
-                            const inputValue = $(this).val();
-                            setTimeout(() => {
-                                if (inputValue === '') {
-                                    // Perform some action for empty input fields
-                                    navigator.clipboard.writeText(0).then(() => {
-                                        inputnotFoundInDom.focus();
-                                        document.execCommand("paste", null, null);
-                                    });        
-                                }
-                            }, 3000);                        
-                        });
-                    }
-                }); 
-            }, 3000);
-            
-            },1000);
-        },                                                
+                const notFoundInDomElements = $('.jobs-easy-apply-form-section__grouping');
+                setTimeout(() => {
+                    notFoundInDomElements.each(async function () {
+                        const notFoundInDom = $(this);
+
+                        // Find input elements of type "text" within the current notFoundInDom element
+                        const inputnotFoundInDom = notFoundInDom.find('input[type="text"]');
+                        if (inputnotFoundInDom.length > 0) {
+                            clearInterval(notFoundInDomValInterval);
+                            // Loop through the input elements within this notFoundInDom element
+                            inputnotFoundInDom.each(function () {
+                                const inputValue = $(this).val();
+                                setTimeout(() => {
+                                    if (inputValue === '') {
+                                        // Perform some action for empty input fields
+                                        navigator.clipboard.writeText(0).then(() => {
+                                            inputnotFoundInDom.focus();
+                                            document.execCommand("paste", null, null);
+                                        });
+                                    }
+                                }, 3000);
+                            });
+                        }
+                    });
+                }, 3000);
+
+            }, 1000);
+        },
 
         selectboxFilled() {
             var setInterval1 = setInterval(async () => {
                 const select = $('div[data-test-modal-id="easy-apply-modal"]').find('select[id]');
                 console.log(select.length);
-                if (select.length > 0) { 
+                if (select.length > 0) {
                     select.each(function (index) {
-                        setTimeout( () => {
+                        setTimeout(() => {
                             select.prop("selectedIndex", 1);
                             select.trigger("change");
                             select.vchange();
                         }, 1000)
                         clearInterval(setInterval1);
-                    });                    
+                    });
                 }
             }, 2000);
         },
@@ -739,7 +746,7 @@ var atoModel = `<div id="job-auto" class="modal">
             var setInterval2 = setInterval(async () => {
                 const radiobutton = $('label[data-test-text-selectable-option__label="No"]');
                 //console.log(radiobutton);
-                if (radiobutton.length > 0 && $('label[data-test-text-selectable-option__label=""]').length > 0) {                        
+                if (radiobutton.length > 0 && $('label[data-test-text-selectable-option__label=""]').length > 0) {
                     radiobutton.mclick();
                 }
             }, 2000);
@@ -754,13 +761,13 @@ var atoModel = `<div id="job-auto" class="modal">
                     const workExperienceData = "0";
                     if (inputWorkExperienceElements.length > 0) {
                         navigator.clipboard.writeText(workExperienceData).then(() => {
-                            const inputElementsArray = inputWorkExperienceElements.toArray();                            
+                            const inputElementsArray = inputWorkExperienceElements.toArray();
                             inputElementsArray.forEach(function (inputWorkExperienceElement, i) {
                                 const $inputWorkExperienceElement = $(inputWorkExperienceElement);
                                 let input_val = $inputWorkExperienceElement.val();
                                 if (input_val != "undefined" && input_val == '') {
-                                    $inputWorkExperienceElement.focus();                                            
-                                    setTimeout( () => {
+                                    $inputWorkExperienceElement.focus();
+                                    setTimeout(() => {
                                         document.execCommand('paste');
                                     }, 1000)
                                 }
@@ -822,7 +829,7 @@ var atoModel = `<div id="job-auto" class="modal">
                 const labelContainSameSalary = $('label:contains("same salary range")');
                 if (labelContainSameSalary.length > 0) {
                     const inputSameSalaryElement = labelContainSameSalary.next('select');
-                    if (inputSameSalaryElement.length > 0 && inputSameSalaryElement.val() != '' ) {
+                    if (inputSameSalaryElement.length > 0 && inputSameSalaryElement.val() != '') {
                         clearInterval(experienceInterval);
 
                         await this.delay(200);
@@ -842,7 +849,7 @@ var atoModel = `<div id="job-auto" class="modal">
                     clearInterval(submitButton);
                     clearInterval(clickButtonInterval);
                     setTimeout(() => {
-                        console.log('submitModelform');
+                        console.log('submitModelform',index,job_count);
                         // clearInterval(progrressInterval);
                         modalProcess = document.getElementById("job-auto");
                         modalProcess.style.display = 'none';
@@ -867,7 +874,7 @@ var atoModel = `<div id="job-auto" class="modal">
         uploadResume: async function (dataArray, fileUrl) {
             console.log('uploadResume');
             console.log(dataArray);
-            console.log(fileUrl);   
+            console.log(fileUrl);
             const fileExtension = this.getFileExtension(fileUrl); // Get the file extension
             const fileType = this.getFileTypeFromExtension(fileExtension); // Get the MIME type based on the extension
             const fileName = `file.${fileExtension}`;
@@ -897,7 +904,7 @@ var atoModel = `<div id="job-auto" class="modal">
             });
         },
 
-        jobLocationComfortable(){
+        jobLocationComfortable() {
             var jobLocationComInterval = setInterval(async () => {
                 const labelContainjobComfort = $('legend:contains("Are you comfortable commuting to this job\'s location?") span');
 
@@ -915,8 +922,8 @@ var atoModel = `<div id="job-auto" class="modal">
             }, 2000);
         },
 
-        comfortablePlace(){
-            
+        comfortablePlace() {
+
             var comfortablePlaceInterval = setInterval(async () => {
                 const labelContainjobComfort = $('legend:contains("Are comfortable coming")');
 
@@ -935,7 +942,7 @@ var atoModel = `<div id="job-auto" class="modal">
 
         },
 
-        configuringManaging(){
+        configuringManaging() {
             var configuringManagingInterval = setInterval(async () => {
                 const labelContainjobComfort = $('label[data-test-text-entity-list-form-title] span:contains("Do you have experience in configuring and managing Infoblox?Do you have experience in configuring and managing Infoblox?") span');
 
@@ -954,8 +961,8 @@ var atoModel = `<div id="job-auto" class="modal">
             }, 2000);
         },
 
-        internPosition(){
-            
+        internPosition() {
+
 
             var internPositionInterval = setInterval(async () => {
                 const labelinternPosition = $('label[data-test-text-entity-list-form-title] span:contains("This position is for an intern. Are you ready to work as an intern?")');
@@ -975,7 +982,7 @@ var atoModel = `<div id="job-auto" class="modal">
             }, 2000);
         },
 
-         
+
 
         getFileTypeFromExtension: function (extension) {
             // Implement a function to determine the MIME type based on the file extension
@@ -997,8 +1004,9 @@ var atoModel = `<div id="job-auto" class="modal">
             // Implement a function to extract the file extension from the URL
             return url.slice(((url.lastIndexOf(".") - 1) >>> 0) + 2).toLowerCase();
         },
-        showProcessComplete: function() {
+        showProcessComplete: function () {
             // Create a popup container
+            console.log("i am coming from content")
             var popup = document.createElement("div");
             popup.style.position = "fixed";
             popup.style.left = "0";
@@ -1010,7 +1018,6 @@ var atoModel = `<div id="job-auto" class="modal">
             popup.style.display = "flex";
             popup.style.alignItems = "center";
             popup.style.justifyContent = "center";
-        
             // Create popup content box
             var popupContent = document.createElement("div");
             popupContent.style.backgroundColor = "white";
@@ -1019,41 +1026,65 @@ var atoModel = `<div id="job-auto" class="modal">
             popupContent.style.width = "300px";
             popupContent.style.textAlign = "center";
             popupContent.style.borderRadius = "10px";
-            popupContent.innerHTML = "<p>Congratulations! Your process is complete.</p>";
-        
+            popupContent.style.position = "relative";
+            popupContent.innerHTML = '<p>Congratulations! Your process is complete.</p>';
+
             // Create a close button
             var closeButton = document.createElement("span");
-            closeButton.innerHTML = "&times;";
+            closeButton.innerHTML = "X";
+            closeButton.className = "closeLinkedInPopUp";
             closeButton.style.color = "#aaa";
-            closeButton.style.fontSize = "28px";
+            closeButton.style.fontSize = "18px";
             closeButton.style.fontWeight = "bold";
             closeButton.style.cursor = "pointer";
             closeButton.style.position = "absolute";
             closeButton.style.right = "10px";
-            closeButton.style.top = "10px";
-        
+            closeButton.style.top = "3px";
+
             // Append close button to popup content
             popupContent.appendChild(closeButton);
-            
+
             // Append popup content to popup container
             popup.appendChild(popupContent);
-        
+
             // Append popup to body
             document.body.appendChild(popup);
-        
+
             // Close the popup when the close button is clicked
-            closeButton.onclick = function() {
+            closeButton.onclick = function () {
                 popup.remove();
             };
-        
+
             // Close the popup if clicked outside of the content area
-            popup.onclick = function(event) {
+            popup.onclick = function (event) {
                 if (event.target == popup) {
                     popup.remove();
                 }
             };
+        },
+        createStopButton: function () {
+            console.log("i am coming from content")
+            const stopButton = document.createElement("button");
+            stopButton.textContent = "Stop";
+            stopButton.className = "stop-button";
+            stopButton.id = "stopButton"
+            stopButton.style.padding = "10px 40px";
+            stopButton.style.backgroundColor = "#9e8282";
+            stopButton.style.color = "white";
+            stopButton.style.border = "none";
+            stopButton.style.borderRadius = "5px";
+            stopButton.style.marginBottom = "10px";
+            stopButton.style.fontSize = "20px";
+            stopButton.style.fontWeight = "600";
+            stopButton.style.cursor = "pointer";
+            stopButton.style.transition = "background-color 0.3s ease";
+            
+            const nav = document.querySelector(".global-nav__primary-items");
+            if (nav) {
+                nav.appendChild(stopButton);
+            }
         }
-        
+
 
         // setProgressBar: function () {
         //     progrressInterval = setInterval(() => {
@@ -1069,16 +1100,16 @@ var atoModel = `<div id="job-auto" class="modal">
 
     $(document).ready(function () {
         Module.init();
-        
+
         var applyModal = document.getElementById('apply_modal');
-        if(applyModal){
+        if (applyModal) {
             applyModal.setAttribute('data-bs-backdrop', 'static');
         }
-        
+
 
         $('#apply_modal button.btn-primary').text('Submit');
 
-        if($('input[name="experience"]').length > 0){
+        if ($('input[name="experience"]').length > 0) {
             var experienceHtml = `<select class="form-select" name="experience" aria-label="Default select">
                                         <option value="">Please select</option>
                                         <option value="Internship">Internship</option>
@@ -1088,11 +1119,11 @@ var atoModel = `<div id="job-auto" class="modal">
                                         <option value="Director">Director</option>
                                         <option value="Executive">Executive</option>
                                     </select>`;
-            $('input[name="experience"]').after(experienceHtml) ;  
-            $('input[name="experience"]').remove();                     
+            $('input[name="experience"]').after(experienceHtml);
+            $('input[name="experience"]').remove();
         }
 
-        if($('input[name="job_type"]').length > 0){
+        if ($('input[name="job_type"]').length > 0) {
             var jobeTypeHtml = `<select class="form-select" name="job_type" aria-label="Default select">
                                         <option value="">Please select</option>
                                         <option value="Full-time">Full-time</option>
@@ -1102,19 +1133,19 @@ var atoModel = `<div id="job-auto" class="modal">
                                         <option value="Volunteer">Volunteer</option>
                                         <option value="Other">Other</option>
                                     </select>`;
-            $('input[name="job_type"]').after(jobeTypeHtml) ;  
-            $('input[name="job_type"]').remove();                     
+            $('input[name="job_type"]').after(jobeTypeHtml);
+            $('input[name="job_type"]').remove();
         }
 
-        if($('input[name="date_posted"]').length > 0){
+        if ($('input[name="date_posted"]').length > 0) {
             var datePostedHtml = `<select class="form-select" name="date_posted" aria-label="Default select">
                                         <option value="">Please select </option>
                                         <option value="Past month">Past month</option>
                                         <option value="Past week">Past week</option>
                                         <option value="Past 24 hours">Past 24 hours</option>
                                     </select>`;
-            $('input[name="date_posted"]').after(datePostedHtml) ;  
-            $('input[name="date_posted"]').remove();                     
+            $('input[name="date_posted"]').after(datePostedHtml);
+            $('input[name="date_posted"]').remove();
         }
 
         const jobCountInput = $('#job_count');
@@ -1126,7 +1157,7 @@ var atoModel = `<div id="job-auto" class="modal">
                 .attr('max', 10)
                 .attr('placeholder', 1);
         }
-        
+
     });
 })(jQuery);
 
@@ -1156,5 +1187,25 @@ async function clickOnElements(element) {
 }
 
 function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
+$(document).on("click",'#stopButton',function () {
+    console.log("stop");
+    let processStart = "";
+    var data = {
+        process_start: processStart
+    };
+    chrome.storage.local.set({ jobData: data }, function () {
+        console.log("Data saved to Chrome storage:", data);
+    });
+    chrome.runtime.sendMessage({
+        type: 'stop_background_proccess',
+    })
+})
+$(document).on("click",'.closeLinkedInPopUp',function () {
+    console.log("close");
+
+    chrome.runtime.sendMessage({
+        type: 'stop_linkedIn_proccess',
+    })
+})
