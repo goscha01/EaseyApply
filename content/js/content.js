@@ -103,7 +103,7 @@ var atoModel = `<div id="job-auto" class="modal">
 
                     setTimeout(() => {
                         $this.filtersJobs(job_count);
-                        
+
                     }, 4000);
 
                 } else if (message.type == 'uploadDoc') {
@@ -162,78 +162,105 @@ var atoModel = `<div id="job-auto" class="modal">
                             this.clickNextButton();
                             this.uploadSingleFileToInput(cv);
                             clearInterval(modelInterval);
+                            let checkQueField = setInterval(() => {
+                                if ($('.jobs-easy-apply-content .mercado-match').length <= 0) {
+                                    console.log("form has filled");
+                                    if ($('[aria-label="Submit application"]').length > 0) {
+                                        setTimeout(() => {
+                                            this.submitModelform();
+                                        }, 5000);
+                                    } else {
+                                        setTimeout(() => {
+                                            this.reviewButton();
+                                        }, 5000);
+                                    }
+                                    if ($('#post-apply-modal').length > 0 || $('[data-view-name="job-post-apply-timeline"]').length > 0) {
+                                        clearInterval(checkQueField)
+                                        setTimeout(() => {
+                                            console.log("send massage to background")
+                                            chrome.runtime.sendMessage({
+                                                type: 'goingToNextJob',
+
+                                            });
+                                        }, 2000);
+
+
+                                    }
+
+                                }
+                            }, 2000);
 
                             // NEW CODE START HERE FROM SOBI
                             const MODEL_MAIN = 'div[data-test-modal-id="easy-apply-modal"]'; // MAIN MODEL DIV SELECTOR
 
                             const MODEL_QUESTIONS_LI = '.jobs-easy-apply-form-section__grouping'; // INNER LI OF QUESTIONS
-                            setTimeout(() => {
-                                if ($(MODEL_MAIN).find(MODEL_QUESTIONS_LI).length > 0) {
-                                    $(MODEL_MAIN).find(MODEL_QUESTIONS_LI).each(function (index, i) {
-                                        setTimeout(() => {
-                                            //console.log($(this).find('label:contains("experience")').length);
-                                            // FOR NUMERIC VALUES
-                                            let numeric_question_text = $(this).find('label[for*="-numeric"]').text();
-                                            console.log(numeric_question_text);
-                                            const $inputWorkExperienceElement = $(this).find('label[for*="-numeric"]').next('input[type="text"]');
-                                            if ($inputWorkExperienceElement.length > 0) {
-                                                chrome.runtime.sendMessage({ type: "getAnswersFromchatgpt", question: numeric_question_text }, function (response) {
-                                                    console.log(response.answers.experience);
-                                                    let answer_value = 0;
-                                                    if (numeric_question_text.includes("experience work")) {
+                            // setTimeout(() => {
+                            //     if ($(MODEL_MAIN).find(MODEL_QUESTIONS_LI).length > 0) {
+                            //         $(MODEL_MAIN).find(MODEL_QUESTIONS_LI).each(function (index, i) {
+                            //             setTimeout(() => {
+                            //                 //console.log($(this).find('label:contains("experience")').length);
+                            //                 // FOR NUMERIC VALUES
+                            //                 let numeric_question_text = $(this).find('label[for*="-numeric"]').text();
+                            //                 console.log(numeric_question_text);
+                            //                 const $inputWorkExperienceElement = $(this).find('label[for*="-numeric"]').next('input[type="text"]');
+                            //                 if ($inputWorkExperienceElement.length > 0) {
+                            //                     chrome.runtime.sendMessage({ type: "getAnswersFromchatgpt", question: numeric_question_text }, function (response) {
+                            //                         console.log(response.answers.experience);
+                            //                         let answer_value = 0;
+                            //                         if (numeric_question_text.includes("experience work")) {
 
-                                                    }
+                            //                         }
 
-                                                    if (numeric_question_text.includes("expected salary")) {
-                                                        answer_value = response.answers.expected_salary;
-                                                    }
+                            //                         if (numeric_question_text.includes("expected salary")) {
+                            //                             answer_value = response.answers.expected_salary;
+                            //                         }
 
-                                                    if (/experience.*work|work.*experience/.test(numeric_question_text)) {
-                                                        answer_value = response.answers.experience;
-                                                    }
+                            //                         if (/experience.*work|work.*experience/.test(numeric_question_text)) {
+                            //                             answer_value = response.answers.experience;
+                            //                         }
 
-                                                    if (/current.*salary|salary.*current/.test(numeric_question_text)) {
-                                                        answer_value = response.answers.current_salary;
-                                                    }
+                            //                         if (/current.*salary|salary.*current/.test(numeric_question_text)) {
+                            //                             answer_value = response.answers.current_salary;
+                            //                         }
 
-                                                    if (/expected.*salary|salary.*expected/.test(numeric_question_text)) {
-                                                        answer_value = response.answers.expected_salary;
-                                                    }
+                            //                         if (/expected.*salary|salary.*expected/.test(numeric_question_text)) {
+                            //                             answer_value = response.answers.expected_salary;
+                            //                         }
 
-                                                    if (/preferred.*salary|preferred.*expected/.test(numeric_question_text)) {
-                                                        answer_value = response.answers.expected_salary;
-                                                    }
-                                                    console.log(answer_value, "AAAAAAAAA");
-                                                    navigator.clipboard.writeText(answer_value).then(() => {
-                                                        $inputWorkExperienceElement.focus();
-                                                        $inputWorkExperienceElement.select();
-                                                        document.execCommand('paste');
-                                                    });
-                                                    $(".artdeco-modal .artdeco-button__text").click();
-                                                });
+                            //                         if (/preferred.*salary|preferred.*expected/.test(numeric_question_text)) {
+                            //                             answer_value = response.answers.expected_salary;
+                            //                         }
+                            //                         console.log(answer_value, "AAAAAAAAA");
+                            //                         navigator.clipboard.writeText(answer_value).then(() => {
+                            //                             $inputWorkExperienceElement.focus();
+                            //                             $inputWorkExperienceElement.select();
+                            //                             document.execCommand('paste');
+                            //                         });
+                            //                         $(".artdeco-modal .artdeco-button__text").click();
+                            //                     });
 
-                                            } else if ($(this).find('select[id]').length > 0) {
-                                                let select = $(this).find('select[id]');
-                                                select.each(function (index) {
-                                                    setTimeout(() => {
-                                                        select.prop("selectedIndex", 1);
-                                                        select.trigger("change");
-                                                        select.vchange();
-                                                    }, 1000)
-                                                });
-                                            } else if ($(this).find('label[data-test-text-selectable-option__label]').length > 0) {
-                                                const radiobutton = $(this).find('label[data-test-text-selectable-option__label="No"]');
-                                                radiobutton.mclick();
-                                            } else {
-                                                console.log("nothings");
-                                            }
-                                        }, 1000);
-                                    })
-                                }
-                                setTimeout(() => {
-                                    this.submitModelform();
-                                }, 7000);
-                            }, 8000)
+                            //                 } else if ($(this).find('select[id]').length > 0) {
+                            //                     let select = $(this).find('select[id]');
+                            //                     select.each(function (index) {
+                            //                         setTimeout(() => {
+                            //                             select.prop("selectedIndex", 1);
+                            //                             select.trigger("change");
+                            //                             select.vchange();
+                            //                         }, 1000)
+                            //                     });
+                            //                 } else if ($(this).find('label[data-test-text-selectable-option__label]').length > 0) {
+                            //                     const radiobutton = $(this).find('label[data-test-text-selectable-option__label="No"]');
+                            //                     radiobutton.mclick();
+                            //                 } else {
+                            //                     console.log("nothings");
+                            //                 }
+                            //             }, 1000);
+                            //         })
+                            //     }
+                            //     setTimeout(() => {
+                            //         this.submitModelform();
+                            //     }, 7000);
+                            // }, 8000)
 
 
 
@@ -374,24 +401,40 @@ var atoModel = `<div id="job-auto" class="modal">
             var linksCollectionInterval = setInterval(() => {
                 this.scrollSearch();
                 var All_Jobs = $('ul.scaffold-layout__list-container li.scaffold-layout__list-item:not(:has(span.tvm__text.tvm__text--neutral)');
-                console.log(All_Jobs, "all jobs ss");
+                console.log(All_Jobs, "all_job");
+
                 setTimeout(() => {
+                    if ($('.job-card-container__apply-method').find('svg').length > 0) {
 
-                    var filteredLinks = All_Jobs.find('a').filter(function () {
-                        // Filter only <a> tags with href attribute
-                        return $(this).attr('href');
-                    });
+                        // var filteredLinks = All_Jobs.find('a').filter(function () {
+                        //     // Filter only <a> tags with href attribute
+                        //     if($(this).find('.job-card-container__apply-method').find('svg').length > 0){
+                        //         return $(this).attr('href');
+                        //     }
+                        // });
+                        var filteredLinks = All_Jobs.each(function() {
+                            if ($(this).find('li.job-card-container__apply-method svg').length > 0) {
+                                console.log($(this).find('a'));
+                                return $(this).find('a').attr('href');
+                            }
+                        });
+                        console.log("filteredLinks",filteredLinks)
+                        // Extract href text from the filtered links
+                        var job_links = filteredLinks.map(function () {
+                            if ($(this).find('li.job-card-container__apply-method svg').length > 0) {
+                                console.log($(this).find('a'));
+                                return $(this).find('a').attr('href');
+                            }
+                        }).get();
+                        
 
-                    // Extract href text from the filtered links
-                    var job_links = filteredLinks.map(function () {
-                        return $(this).attr('href');
-                    }).get();
 
-
-                    console.log(job_links, "job links");
+                        console.log(job_links, "job links");
+                    }
                     // Add the current page's job links to the overall list
                     allJobLinks = allJobLinks.concat(job_links);
-                    console.log(allJobLinks);
+                    console.log("alljoblinks",allJobLinks);
+                    // return false;
                     // chrome.tabs
                     if (allJobLinks.length < job_count) {
                         console.log("i am come in if condition")
@@ -849,7 +892,7 @@ var atoModel = `<div id="job-auto" class="modal">
                     clearInterval(submitButton);
                     clearInterval(clickButtonInterval);
                     setTimeout(() => {
-                        console.log('submitModelform',index,job_count);
+                        console.log('submitModelform', index, job_count);
                         // clearInterval(progrressInterval);
                         modalProcess = document.getElementById("job-auto");
                         modalProcess.style.display = 'none';
@@ -1078,7 +1121,7 @@ var atoModel = `<div id="job-auto" class="modal">
             stopButton.style.fontWeight = "600";
             stopButton.style.cursor = "pointer";
             stopButton.style.transition = "background-color 0.3s ease";
-            
+
             const nav = document.querySelector(".global-nav__primary-items");
             if (nav) {
                 nav.appendChild(stopButton);
@@ -1189,7 +1232,7 @@ async function clickOnElements(element) {
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-$(document).on("click",'#stopButton',function () {
+$(document).on("click", '#stopButton', function () {
     console.log("stop");
     let processStart = "";
     var data = {
@@ -1202,7 +1245,7 @@ $(document).on("click",'#stopButton',function () {
         type: 'stop_background_proccess',
     })
 })
-$(document).on("click",'.closeLinkedInPopUp',function () {
+$(document).on("click", '.closeLinkedInPopUp', function () {
     console.log("close");
 
     chrome.runtime.sendMessage({

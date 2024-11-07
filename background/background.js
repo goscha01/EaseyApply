@@ -22,6 +22,7 @@ var chatgpt_json = {
     "experience": "8",
   }
 };
+
 // Function to get the user ID from cookies
 function getCookies(domain, name, callback) {
   chrome.cookies.get({ "url": domain, "name": name }, function (cookie) {
@@ -151,13 +152,12 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       currentTabId = tabs[0].id;
       console.log(currentTabId);
+      currentIndex = 0;
       var allJobLinks = message.linksArray;
-      chrome.storage.local.set({ allJobLinks: allJobLinks }, function () {
+      chrome.storage.local.set({ allJobLinks: allJobLinks, currentIndex: currentIndex }, function () {
         console.log(allJobLinks, "all jobs limks");
-        // Start updating the tab URL
-        currentIndex = 0;
         console.log(currentTabId, "current tab id");
-        updateTabUrl(allJobLinks, currentTabId);
+        updateTabUrl(allJobLinks, currentTabId, currentIndex);
         sendResponse({ response: "Tab update process started" });
       });
 
@@ -169,53 +169,81 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     chrome.runtime.reload();
   } else if (message.type == "stop_linkedIn_proccess") {
     chrome.tabs.remove(sender.tab.id)
+  } else if (message.type == "goingToNextJob") {
+    console.log("jjdjdjjd")
+    chrome.storage.local.get(['currentIndex', 'currentTabId', 'allJobLinks'], function (result) {
+      console.log("currentIndex", result.currentIndex)
+      console.log("currentTabId", result.currentTabId)
+      console.log("allJobLinks", result.allJobLinks)
+      let increaseCurrentIndex = result.currentIndex + 1
+      chrome.storage.local.set({ currentIndex: increaseCurrentIndex }, function () {
+        updateTabUrl(result.allJobLinks, result.currentTabId, increaseCurrentIndex);
+      });
+    });
+
   }
 });
 
 
 // Function to update the tab URL and schedule the next update
-function updateTabUrl(allJobLinks, currentTabId) {
-  console.log(allJobLinks);
+function updateTabUrl(allJobLinks, currentTabId, currentIndex) {
+  chrome.storage.local.get(['jobData'], function (result) {
+    let jobCount = parseInt(result.jobData.job_count);
+    console.log(allJobLinks, currentIndex, currentTabId, jobCount, "update tab urls func");
+    if (currentIndex < allJobLinks.length) {
+      console.log(currentIndex, allJobLinks.length, "length check");
 
-  if (currentIndex < allJobLinks.length) {
-    console.log(currentIndex, allJobLinks.length, "length check");
+      console.log("currentIndex", currentIndex)
+      console.log("jobCount", jobCount)
 
-    // Check if currentIndex equals allJobLinks.length, and if so, skip the update and go to the else condition.
-    if (currentIndex == jobCount) {
+      console.log("ljd;lsdj", result.jobData.job_count)
+
+      // Check if currentIndex equals allJobLinks.length, and if so, skip the update and go to the else condition.
+      if (currentIndex == jobCount) {
+        console.log("All URLs updated");
+        let processStart = "";
+        var data = {
+          process_start: processStart
+        };
+        chrome.storage.local.set({ jobData: data }, function () {
+          console.log("Data saved to Chrome storage:", data);
+          chrome.tabs.sendMessage(currentTabId, { action: "processComplete" })
+        });
+        return;
+      }
+
+
+      if (allJobLinks[currentIndex]) {
+        const newUrl = allJobLinks[currentIndex];
+
+        console.log("newUrl", `https://www.linkedin.com${newUrl}`)
+        // return false;
+
+
+        // Update the tab URL
+        chrome.tabs.update(currentTabId, { url: `https://www.linkedin.com${newUrl}` }, function (tab) {
+          console.log("Tab URL updated:", tab.url);
+          console.log(currentTabId);
+          chrome.storage.local.set({ currentTabId: currentTabId }, function () {
+            console.log("Data saved to Chrome storage:", data);
+            chrome.tabs.onUpdated.addListener(linkedinTabListener);
+            chrome.tabs.onUpdated.addListener(onTabUpdated);
+          });
+
+
+          // Schedule the next update after 45 seconds
+          // setTimeout(function () {
+          //   currentIndex++;
+          //   updateTabUrl(allJobLinks, currentTabId);
+          // }, 45000);
+        });
+      }
+
+    } else {
       console.log("All URLs updated");
-      let processStart = "";
-      var data = {
-        process_start: processStart
-      };
-      chrome.storage.local.set({ jobData: data }, function () {
-        console.log("Data saved to Chrome storage:", data);
-        chrome.tabs.sendMessage(currentTabId, { action: "processComplete" })
-      });
-      return;
-    } 
-    if (allJobLinks[currentIndex]) {
-      const newUrl = allJobLinks[currentIndex];
-
-      // Update the tab URL
-      chrome.tabs.update(currentTabId, { url: `https://www.linkedin.com/${newUrl}` }, function (tab) {
-        console.log("Tab URL updated:", tab.url);
-        console.log(currentTabId);
-        chrome.tabs.onUpdated.addListener(linkedinTabListener);
-        chrome.tabs.onUpdated.addListener(onTabUpdated);
-
-        // Schedule the next update after 45 seconds
-        setTimeout(function () {
-          currentIndex++;
-          updateTabUrl(allJobLinks, currentTabId);
-        }, 45000);
-      });
+      // You can perform additional actions or send a response if needed
     }
-
-  } else {
-    console.log("All URLs updated");
-    // You can perform additional actions or send a response if needed
-  }
-
+  });
 }
 
 function onTabUpdated(tabId, changeInfo, tab) {
@@ -327,31 +355,92 @@ function openLinkedinTab(data) {
   filter += '&f_AL=true';
 
   linkedInUrl = url + filter;
+  let isLinkedInTab = false;
+  let linkedInTab = null;
 
   console.log(linkedInUrl, "llllllllllllll");
+  chrome.windows.getAll({ populate: true }, function (list) {
+    console.log("list----", list[0].tabs)
+    list[0].tabs.filter(tabs => {
+      console.log("tabs", tabs.url)
+      if (tabs.url.includes("linkedin.com")) {
+        isLinkedInTab = true;
+        linkedInTab = tabs.id;
+        return
+      }
+    })
+    if (isLinkedInTab == true) {
+      console.log("if---")
+      chrome.tabs.update(linkedInTab, { url: linkedInUrl, active: true }, function (tab) {
+        console.log("tab updated")
+        chrome.storage.local.set({ UpdatedlinkedInTab: tab.id }, function () {
+          chrome.tabs.onUpdated.addListener(linkedinTabListenerUpdate);
+        });
+      });
+      // // window.location.href = linkedInUrl;
+      // setTimeout(() => {
+      //   chrome.storage.local.get(['jobData'], function (result) {
+      //     chrome.tabs.sendMessage(linkedInTab, {
+      //       type: 'searchJobs',
+      //       from: 'background',
+      //       jobCount: parseInt(result.jobData.job_count),
+      //       resume: resume ? resume : "",
+      //       additionalInfo: additionalInfo ? additionalInfo : "",
 
-  chrome.tabs.create(
-    {
-      url: linkedInUrl,
-      active: true,
-    },
-    function (tabs) {
-      linkedinTabId = tabs.id;
-      jobCount = data.job_count;
-      chrome.tabs.onUpdated.addListener(linkedinTabListener);
+      //     });
+      //   });
+      // }, 5000);
+
+
+    } else {
+      console.log("else---")
+      chrome.storage.local.get(['jobData'], function (result) {
+        chrome.tabs.create(
+          {
+            url: linkedInUrl,
+            active: true,
+          },
+          function (tabs) {
+            linkedinTabId = tabs.id;
+            jobCount = parseInt(result.jobData.job_count);
+            chrome.tabs.onUpdated.addListener(linkedinTabListener);
+          }
+        );
+      });
     }
-  );
+
+  });
+
+
 };
+function linkedinTabListenerUpdate(tabId, changeInfo, tab) {
+  console.log("i am comes in linkedinTabListenerUpdate")
+  chrome.storage.local.get(['UpdatedlinkedInTab','jobData'], function (result) {
+    if (changeInfo.status === 'complete' && tabId === result.UpdatedlinkedInTab) {
+      console.log("i am comes in UpdatedlinkedInTab")
+      chrome.tabs.sendMessage(result.UpdatedlinkedInTab, {
+        type: 'searchJobs',
+        from: 'background',
+        jobCount: parseInt(result.jobData.job_count),
+        resume: resume ? resume : "",
+        additionalInfo: additionalInfo ? additionalInfo : "",
+      });
+      chrome.tabs.onUpdated.removeListener(linkedinTabListenerUpdate);
+    }
+  })
+}
 
 function linkedinTabListener(tabId, changeInfo, tab) {
   if (changeInfo.status === 'complete' && tabId === linkedinTabId) {
-    chrome.tabs.sendMessage(linkedinTabId, {
-      type: 'searchJobs',
-      from: 'background',
-      jobCount: jobCount,
-      resume: resume ? resume : "",
-      additionalInfo: additionalInfo ? additionalInfo : "",
+    chrome.storage.local.get(['jobData'], function (result) {
+      chrome.tabs.sendMessage(linkedinTabId, {
+        type: 'searchJobs',
+        from: 'background',
+        jobCount: parseInt(result.jobData.job_count),
+        resume: resume ? resume : "",
+        additionalInfo: additionalInfo ? additionalInfo : "",
 
+      });
     });
     chrome.tabs.onUpdated.removeListener(linkedinTabListener);
   }
