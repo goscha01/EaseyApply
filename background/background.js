@@ -361,22 +361,31 @@ function openLinkedinTab(data) {
   console.log(linkedInUrl, "llllllllllllll");
   chrome.windows.getAll({ populate: true }, function (list) {
     console.log("list----", list[0].tabs)
-    list[0].tabs.filter(tabs => {
-      console.log("tabs", tabs.url)
+    // Assume you have access to chrome.tabs API
+    list[0].tabs.forEach(tabs => {
+      // Check if the tab URL includes "linkedin.com"
       if (tabs.url.includes("linkedin.com")) {
-        isLinkedInTab = true;
-        linkedInTab = tabs.id;
-        return
-      }
-    })
-    if (isLinkedInTab == true) {
-      console.log("if---")
-      chrome.tabs.update(linkedInTab, { url: linkedInUrl, active: true }, function (tab) {
-        console.log("tab updated")
-        chrome.storage.local.set({ UpdatedlinkedInTab: tab.id }, function () {
-          chrome.tabs.onUpdated.addListener(linkedinTabListenerUpdate);
+        console.log("Found LinkedIn tab:", tabs.id);
+
+        // Use the chrome.tabs API to close the tab by its ID
+        chrome.tabs.remove(tabs.id, () => {
+          if (chrome.runtime.lastError) {
+            console.error("Error closing tab:", chrome.runtime.lastError);
+          } else {
+            console.log("Closed LinkedIn tab:", tabs.id);
+          }
         });
-      });
+      }
+    });
+
+    // if (isLinkedInTab == true) {
+    //   console.log("if---")
+    //   chrome.tabs.update(linkedInTab, { url: linkedInUrl, active: true }, function (tab) {
+    //     console.log("tab updated")
+    //     chrome.storage.local.set({ UpdatedlinkedInTab: tab.id }, function () {
+    //       chrome.tabs.onUpdated.addListener(linkedinTabListenerUpdate);
+    //     });
+    //   });
       // // window.location.href = linkedInUrl;
       // setTimeout(() => {
       //   chrome.storage.local.get(['jobData'], function (result) {
@@ -392,7 +401,7 @@ function openLinkedinTab(data) {
       // }, 5000);
 
 
-    } else {
+    // } else {
       console.log("else---")
       chrome.storage.local.get(['jobData'], function (result) {
         chrome.tabs.create(
@@ -407,7 +416,7 @@ function openLinkedinTab(data) {
           }
         );
       });
-    }
+    // }
 
   });
 
@@ -415,7 +424,7 @@ function openLinkedinTab(data) {
 };
 function linkedinTabListenerUpdate(tabId, changeInfo, tab) {
   console.log("i am comes in linkedinTabListenerUpdate")
-  chrome.storage.local.get(['UpdatedlinkedInTab','jobData'], function (result) {
+  chrome.storage.local.get(['UpdatedlinkedInTab', 'jobData'], function (result) {
     if (changeInfo.status === 'complete' && tabId === result.UpdatedlinkedInTab) {
       console.log("i am comes in UpdatedlinkedInTab")
       chrome.tabs.sendMessage(result.UpdatedlinkedInTab, {

@@ -103,7 +103,6 @@ var atoModel = `<div id="job-auto" class="modal">
 
                     setTimeout(() => {
                         $this.filtersJobs(job_count);
-
                     }, 4000);
 
                 } else if (message.type == 'uploadDoc') {
@@ -166,13 +165,9 @@ var atoModel = `<div id="job-auto" class="modal">
                                 if ($('.jobs-easy-apply-content .mercado-match').length <= 0) {
                                     console.log("form has filled");
                                     if ($('[aria-label="Submit application"]').length > 0) {
-                                        setTimeout(() => {
-                                            this.submitModelform();
-                                        }, 5000);
+                                        this.submitModelform(); 
                                     } else {
-                                        setTimeout(() => {
-                                            this.reviewButton();
-                                        }, 5000);
+                                        this.reviewButton();
                                     }
                                     if ($('#post-apply-modal').length > 0 || $('[data-view-name="job-post-apply-timeline"]').length > 0) {
                                         clearInterval(checkQueField)
@@ -492,7 +487,7 @@ var atoModel = `<div id="job-auto" class="modal">
         reviewButton: function () {
             var reviewInterval = setInterval(() => {
                 $('button[aria-label="Review your application"]').click();
-            });
+            },15000);
         },
 
         clickNextButton() {
@@ -501,8 +496,6 @@ var atoModel = `<div id="job-auto" class="modal">
                 $('button[aria-label="Continue to next step"]').click();
             }, 3000);
         },
-
-
 
         appendPhoneVal: async function () {
             console.log('appendPhoneVal');
@@ -547,7 +540,6 @@ var atoModel = `<div id="job-auto" class="modal">
                         }
                     });
 
-                    // Remove empty and duplicate items from the array
                     textsArray = textsArray.filter((text, index, self) => {
                         return text !== '' && index === self.indexOf(text);
                     });
@@ -562,17 +554,14 @@ var atoModel = `<div id="job-auto" class="modal">
                     // Clear the textsArray after processing
                     textsArray = [];
                 } else {
-                    // If there are no more questions, clear the interval
 
                     console.log('All questions processed.');
                 }
 
-                // Log the final array
                 console.log(textsArray);
 
             }, 2000);
         },
-
 
         appendPostalCodeVal() {
             console.log('appendPostalCodeVal');
@@ -899,7 +888,7 @@ var atoModel = `<div id="job-auto" class="modal">
                         this.processJobItems(index, job_count);
                     }, 3000);
                 }
-            }, 2000);
+            }, 15000);
         },
 
         // Upload a Single File To Input
