@@ -91,3 +91,12 @@
     width: 250px !important;
     background-color: #d4db8e !important;
   }
+  .form-timer-container{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .job-form-timer-section{
+    display: flex;
+    gap: 10px;
+  }

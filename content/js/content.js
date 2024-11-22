@@ -1,5 +1,20 @@
 console.log('here 1');
 var job_count = 0;
+// const countdownPopup = document.createElement('div');
+// countdownPopup.style.display = 'none'; // Hidden initially
+// countdownPopup.style.position = 'fixed';
+// countdownPopup.style.top = '50%';
+// countdownPopup.style.left = '50%';
+// countdownPopup.style.transform = 'translate(-50%, -50%)';
+// countdownPopup.style.padding = '20px';
+// countdownPopup.style.backgroundColor = '#333';
+// countdownPopup.style.color = '#fff';
+// countdownPopup.style.fontSize = '24px';
+// countdownPopup.style.textAlign = 'center';
+// countdownPopup.style.borderRadius = '8px';
+// countdownPopup.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+// countdownPopup.style.zIndex = '99999';
+// countdownPopup.classList.add('countdown-popup');
 jQuery.fn.extend({
     mclick: function () {
         var click_event = document.createEvent("MouseEvents");
@@ -157,31 +172,53 @@ var atoModel = `<div id="job-auto" class="modal">
                         applyButtonToClick.click();
                         clearInterval(applyButtonInterval);
                         const modelInterval = setInterval(() => {
-                            this.reviewButton();
-                            this.clickNextButton();
+                            // this.reviewButton();
+                            // this.clickNextButton();
+                            $('button[aria-label="Continue to next step"]').click();
                             this.uploadSingleFileToInput(cv);
                             clearInterval(modelInterval);
+                            this.clickNextBtnFunc();
+
+
+                            return false;
                             let checkQueField = setInterval(() => {
                                 if ($('.jobs-easy-apply-content .mercado-match').length <= 0) {
                                     console.log("form has filled");
-                                    if ($('[aria-label="Submit application"]').length > 0) {
-                                        this.submitModelform(); 
-                                    } else {
-                                        this.reviewButton();
+                                    const targetElement = document.getElementsByClassName('jobs-easy-apply-content')[0];
+
+                                    if (targetElement) {
+                                        targetElement.appendChild(countdownPopup);
+                                        let countdown = 59;
+                                        countdownPopup.style.display = 'block';
+                                        const interval = setInterval(() => {
+                                            countdownPopup.textContent = countdown;
+                                            countdown--;
+                                            if (countdown < 0) {
+                                                clearInterval(interval);
+                                                countdownPopup.textContent = 'Time is up!';
+                                                setTimeout(() => {
+                                                    countdownPopup.style.display = 'none';
+                                                }, 2000);
+                                            }
+                                        }, 1000);
                                     }
-                                    if ($('#post-apply-modal').length > 0 || $('[data-view-name="job-post-apply-timeline"]').length > 0) {
-                                        clearInterval(checkQueField)
-                                        setTimeout(() => {
-                                            console.log("send massage to background")
-                                            chrome.runtime.sendMessage({
-                                                type: 'goingToNextJob',
+                                    setTimeout(() => {
+                                        if ($('[aria-label="Submit application"]').length > 0) {
+                                            this.submitModelform();
+                                        } else {
+                                            this.reviewButton();
+                                        }
+                                        if ($('#post-apply-modal').length > 0 || $('[data-view-name="job-post-apply-timeline"]').length > 0) {
+                                            clearInterval(checkQueField)
+                                            setTimeout(() => {
+                                                console.log("send massage to background")
+                                                chrome.runtime.sendMessage({
+                                                    type: 'goingToNextJob',
 
-                                            });
-                                        }, 2000);
-
-
-                                    }
-
+                                                });
+                                            }, 2000);
+                                        }
+                                    }, 50000);
                                 }
                             }, 2000);
 
@@ -407,28 +444,28 @@ var atoModel = `<div id="job-auto" class="modal">
                         //         return $(this).attr('href');
                         //     }
                         // });
-                        var filteredLinks = All_Jobs.each(function() {
+                        var filteredLinks = All_Jobs.each(function () {
                             if ($(this).find('li.job-card-container__apply-method svg').length > 0) {
                                 console.log($(this).find('a'));
                                 return $(this).find('a').attr('href');
-                            }
+                            }
                         });
-                        console.log("filteredLinks",filteredLinks)
+                        console.log("filteredLinks", filteredLinks)
                         // Extract href text from the filtered links
                         var job_links = filteredLinks.map(function () {
                             if ($(this).find('li.job-card-container__apply-method svg').length > 0) {
                                 console.log($(this).find('a'));
                                 return $(this).find('a').attr('href');
-                            }
+                            }
                         }).get();
-                        
+
 
 
                         console.log(job_links, "job links");
                     }
                     // Add the current page's job links to the overall list
                     allJobLinks = allJobLinks.concat(job_links);
-                    console.log("alljoblinks",allJobLinks);
+                    console.log("alljoblinks", allJobLinks);
                     // return false;
                     // chrome.tabs
                     if (allJobLinks.length < job_count) {
@@ -485,16 +522,29 @@ var atoModel = `<div id="job-auto" class="modal">
         },
 
         reviewButton: function () {
+            // return new Promise((resolve, reject)=>{
             var reviewInterval = setInterval(() => {
+                // clearInterval(reviewInterval)
                 $('button[aria-label="Review your application"]').click();
-            },15000);
+                // resolve(true)
+            }, 5000);
+            // })
+
         },
 
         clickNextButton() {
+            // return new Promise((resolve, reject)=>{
             console.log("click Next Button called");
             clickButtonInterval = setInterval(() => {
+                // if($('button[aria-label="Continue to next step"]').length > 0){
+                // clearInterval(clickButtonInterval)
                 $('button[aria-label="Continue to next step"]').click();
-            }, 3000);
+                // resolve(true)
+                // }
+
+            }, 5000);
+            // })
+
         },
 
         appendPhoneVal: async function () {
@@ -873,13 +923,27 @@ var atoModel = `<div id="job-auto" class="modal">
             }, 2000);
         },
 
-        submitModelform() {
+        submitModelform: function () {
 
             var submitButton = setInterval(() => {
                 if ($('button[aria-label="Submit application"]').length > 0) {
                     $('button[aria-label="Submit application"]').click();
                     clearInterval(submitButton);
                     clearInterval(clickButtonInterval);
+
+                    setTimeout(() => {
+                        if ($('#post-apply-modal').length > 0 || $('[data-view-name="job-post-apply-timeline"]').length > 0) {
+                            // clearInterval(checkQueField)
+                            setTimeout(() => {
+                                console.log("send massage to background")
+                                chrome.runtime.sendMessage({
+                                    type: 'goingToNextJob',
+
+                                });
+                            }, 2000);
+                        }
+                    }, 2000)
+
                     setTimeout(() => {
                         console.log('submitModelform', index, job_count);
                         // clearInterval(progrressInterval);
@@ -888,11 +952,12 @@ var atoModel = `<div id="job-auto" class="modal">
                         this.processJobItems(index, job_count);
                     }, 3000);
                 }
-            }, 15000);
+            }, 6000);
         },
 
         // Upload a Single File To Input
         uploadSingleFileToInput: async function (fileUrl) {
+            // return new Promise((resolve, reject)=>{
             console.log('uploadSingleFileToInput');
             var fileInterval = setInterval(async () => {
                 clearInterval(fileInterval);
@@ -900,8 +965,11 @@ var atoModel = `<div id="job-auto" class="modal">
 
                 if (inputFileElement.length > 0) {
                     chrome.runtime.sendMessage({ 'type': 'resumeUrl', 'url': fileUrl });
+                    // resolve(true)
                 }
             }, 2000);
+            // })
+
         },
         uploadResume: async function (dataArray, fileUrl) {
             console.log('uploadResume');
@@ -1074,7 +1142,7 @@ var atoModel = `<div id="job-auto" class="modal">
             closeButton.style.top = "3px";
 
             // Append close button to popup content
-            popupContent.appendChild(closeButton);
+            // popupContent.appendChild(closeButton);
 
             // Append popup content to popup container
             popup.appendChild(popupContent);
@@ -1115,19 +1183,83 @@ var atoModel = `<div id="job-auto" class="modal">
             if (nav) {
                 nav.appendChild(stopButton);
             }
+        },
+        showFormTimer: function () {
+            // console.log("inside form show")
+            let timerHtml = `<div class="job-apply-timer-box">
+                <div class="job-form-timer-section">
+                    <div class="timer-warning">You have 1 minute to fill the form</div>
+                        <div class="job-form-timer">
+                            <div class="job-timer-running">01:00</div>
+                        </div>
+                </div>
+            </div>`
+
+            if ($('.job-apply-timer-box').length <= 0) {
+                $('.artdeco-modal__header.ember-view').append(timerHtml)
+                $('.job-apply-timer-box .timer-warning').css({ "color": "#bc2424" })
+                $('.job-apply-timer-box .job-timer-running').css({ "color": "#bc2424" })
+                $('.job-apply-timer-box').parent().css({ "display": "flex", "justify-content": "space-between", "align-items": "baseline" })
+            }
+        },
+        startCountdown: function () {
+
+            $(document).click((event) => {
+                // console.log("from 1234: ",$(event.target))
+                const closestElementNextBtn = $(event.target).closest('[aria-label="Continue to next step"]');
+                const closestElementReviewBtn = $(event.target).closest('[aria-label="Review your application"]');
+                if ($(closestElementNextBtn).length > 0 || $(closestElementReviewBtn).length > 0) {
+                    console.log('Found the closest element with aria-label="Continue to next step".');
+                    this.clickNextBtnFunc();
+                }
+            });
+
+        },
+        clickNextBtnFunc: function () {
+            console.log("inside the nect btn function")
+            setTimeout(() => {
+                if ($('.jobs-easy-apply-modal .mercado-match').length > 0) {
+                    setTimeout(() => {
+                        this.fillFormWithTimeOut();
+                    }, 1000);
+
+                } else if ($('button[aria-label="Continue to next step"]').length > 0) {
+                    console.log('no error click next')
+                    $('button[aria-label="Continue to next step"]').click();
+                    setTimeout(() => {
+                        this.clickNextBtnFunc();
+                    }, 1000);
+                } else {
+                    console.log("review btn appear")
+                    setTimeout(() => {
+                        $('button[aria-label="Review your application"]').click();
+                    }, 1000);
+
+
+                    setTimeout(() => {
+                        if ($('.jobs-easy-apply-modal .mercado-match').length > 0) {
+                            this.fillFormWithTimeOut();
+
+                        } else {
+                            console.log("inside the submit form")
+                            this.submitModelform();
+                        }
+                    }, 1500)
+
+                }
+            }, 3000);
+
+        },
+        fillFormWithTimeOut: function () {
+            setTimeout(() => {
+                if ($('.jobs-easy-apply-content .mercado-match').length > 0 && $('.form-timer-container').length <= 0) {
+                    setTimeout(() => {
+                        this.startCountdown()
+                    }, 500);
+
+                }
+            }, 1000)
         }
-
-
-        // setProgressBar: function () {
-        //     progrressInterval = setInterval(() => {
-        //         if ($('progress.artdeco-completeness-meter-linear__progress-element').length > 0) {
-        //             progess = $('progress.artdeco-completeness-meter-linear__progress-element').val();
-        //             progressBar.value = progess;
-        //         }
-        //     }, 2000);
-        // }
-
-        //end of functions
     };
 
     $(document).ready(function () {
