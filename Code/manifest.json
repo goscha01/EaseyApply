@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "EasyApply",
+  "short_name": "EasyApply",
+  "version": "1.0",
+  "description": "Apply to 100’s of jobs application system EasyApply.",
+  "background": {
+    "service_worker": "background/bg-loader.js"
+  },
+  "icons": {
+    "32": "icons/icon32.png",
+    "64": "icons/icon64.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "browser_style": false,
+    "default_title": "initial",
+    "default_popup": "pop-up.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+    "cookies",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "*://*.linkedin.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.linkedin.com/*","*://*/*" ],
+      "js": [
+        "/assets/js/jquery-3.4.1.min.js",
+        "/config.js",
+        "/content/js/helper.js",
+        "/content/js/content.js"
+      ],
+      "css": ["/content/css/content.css"],
+      "all_frames": false,
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/icon32.png"],
+      "matches": ["<all_urls>"],
+      "extension_ids": []
+    }
+  ]
+}

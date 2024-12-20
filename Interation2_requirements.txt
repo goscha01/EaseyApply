@@ -1,0 +1,19 @@
+1. Create layout (side panel) like pathrise https://chromewebstore.google.com/search/pathrise. (screenshot attached)
+2 Prepopulated values exact as on linked in (When you enter the first letters f a city f.e. "lo" - you see the values for Los Angeles, London etc...)
+3 Remember the last choice of a fields (f.e. if I put last time London, I see prepopulated value of London). If I had the last value as "London" and before I was searching for "Paris", in the apply window(side panel) I see prepopulated the last value "London", but I can enter "P" in the application window and it gives me "Paris"
+4 Move "Stop" button to the side panel
+5 Track positions I applied, applying and about to apply for after the script has scanned the page. F.e. show positions I already applied for with green mark in a circle, those which are applying right now with a yellow mark and fresh applied during the current session with a green mark.
+6 Store answers for repeating questions which are not stored by LinkedIn. F.e. (Will you now or in the future require sponsorship for employment visa status? - I onswer aswer "Yes")
+7 An option to load a resume (pdf, word, google docs) in the the apply window and if loaded, attach it ont hte resume upload step. The field should be optional for a user.
+8 Scroll window down to the buttons when the process of application runs to see that something is happening
+9 Make jump to the next step action based on the page load, not on a timeout. So the script speed depends on internet speed aonly.
+
+
+
+
+
+
+
+
+
+
