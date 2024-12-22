@@ -1,7 +1,16 @@
 console.log('background')
 
+// const siteUrl = "https://sachinkumar.me/quickapply/public/";
+// const siteUrl = "https://quickapplyforjobs.com/";
+
+//const siteUrl = "http://127.0.0.1:8000/";
 let authToken = "";
 let userId = null;
+
+// let apiBaseUrl = `https://sachinkumar.me/quickapply/public/api/`;
+// const apiBaseUrl = `https://quickapplyforjobs.com/api/`;
+
+//let apiBaseUrl = `http://127.0.0.1:8000/api/`;
 let jobCount;
 let resume;
 let additionalInfo;
@@ -16,29 +25,64 @@ var chatgpt_json = {
   }
 };
 
+// Function to get the user ID from cookies
+// function getCookies(domain, name, callback) {
+//   console.log("COOCKIES")
+//   chrome.cookies.get({ "url": domain, "name": name }, function (cookie) {
+//     // console.log(cookie);
+//     if (callback) {
+//       if (cookie && cookie.value) {
+//         callback(cookie.value);
+//       } else {
+//         chrome.storage.local.set({ usertoken: '' }, function () { });
+//       }
+//     }
+//   });
+// }
 
-// chrome.runtime.onStartup.addListener(function () {
-//   console.log("onStartup")
+// Oninstall though window.open can be blocked by popup blockers
+// chrome.runtime.onInstalled.addListener(function () {
+//   // chrome.alarms.create('forActiveState', { periodInMinutes: 1 / 60 });
+//   console.log("INSTALL")
 //   reloadAllTabsOnStartUp();
+//   return true;
+// });
+
+chrome.runtime.onStartup.addListener(function () {
+  console.log("onStartup")
+  reloadAllTabsOnStartUp();
+});
+
+// chrome.alarms.onAlarm.addListener(function (alarm) {
+//   console.log("onAlarm")
+//   if (alarm.name == 'forActiveState') {
+//     getCookies(siteUrl, "user_id", function (id) {
+//       chrome.storage.local.set({ usertoken: id }, function () {
+//         userId = id;
+//       });
+//       console.log("id", id);
+//     });
+//     return true;
+//   }
 // });
 
 // Reload Tabs on startup and on alarms
-// function reloadAllTabsOnStartUp() {
-//   console.log("reloadAllTabsOnStartUp")
-//   chrome.windows.getAll({ populate: true }, function (windows) {
-//     windows.forEach(function (window) {
-//       console.log("WINDOW", window)
-//       if (window.type == 'normal') {
-//         window.tabs.forEach(function (tab) {
-//           if (tab.url && (tab.url.indexOf('linkedin') != -1 || tab.url.indexOf('quickapply') != -1)
-//           ) {
-//             chrome.tabs.reload(tab.id);
-//           }
-//         });
-//       }
-//     });
-//   });
-// };
+function reloadAllTabsOnStartUp() {
+  console.log("reloadAllTabsOnStartUp")
+  chrome.windows.getAll({ populate: true }, function (windows) {
+    windows.forEach(function (window) {
+      console.log("WINDOW", window)
+      if (window.type == 'normal') {
+        window.tabs.forEach(function (tab) {
+          if (tab.url && (tab.url.indexOf('linkedin') != -1 || tab.url.indexOf('quickapply') != -1)
+          ) {
+            chrome.tabs.reload(tab.id);
+          }
+        });
+      }
+    });
+  });
+};
 
 // Listen for message to reload current page
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
@@ -50,6 +94,37 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     console.log("data-new", data)
     openLinkedinTab(data);
 
+    // getCookies(siteUrl, "user_id", function (id) {
+    //     user_id = id;
+    //     console.log(user_id);
+    //     if(user_id != undefined && user_id != ''){
+    //         data.user_id = parseInt(user_id);
+    //         console.log("new-data",data);
+    //         const init = {
+    //           method: 'GET',
+    //           async: true,
+    //           headers: {
+    //             'Content-Type': 'application/json',
+    //           }
+    //         };
+
+    //        const url = `https://quickapplyforjobs.com/api/user/${user_id}`;
+    //       // const url = `https://apis.alturaautomotive.com/demo/public/api/user/6`;
+    //        console.log(url);
+    //         fetch(url, init)
+    //         .then(response => response.json())
+    //         .then(response => {
+    //           console.log("response11111SS",response);
+    //           if (response) {
+    //             resume = response.data.resume_details;
+    //             additionalInfo = response.data;
+
+    //           } else {
+    //             console.warn('Data not saved');
+    //           }
+    //         }); 
+    //     }
+    //   })
   } else if (message.type == 'resumeUrl') {
     console.log(message);
     let tabId = sender.tab.id;
@@ -165,6 +240,12 @@ function updateTabUrl(allJobLinks, currentTabId, currentIndex) {
             chrome.tabs.onUpdated.addListener(onTabUpdated);
           });
 
+
+          // Schedule the next update after 45 seconds
+          // setTimeout(function () {
+          //   currentIndex++;
+          //   updateTabUrl(allJobLinks, currentTabId);
+          // }, 45000);
         });
       }
 
@@ -183,8 +264,14 @@ function onTabUpdated(tabId, changeInfo, tab) {
   }
 }
 
+// function onComplete(tabId,changeInfo,tab){
+//   if (changeInfo.status === 'complete') {
+//     chrome.tabs.sendMessage(tabId,{action:"tabComplete"})
+//   }
+// }
 
 // Add a listener for tab updates
+
 
 
 async function fetchData(tabId, fileUrl) {
@@ -271,6 +358,12 @@ function openLinkedinTab(data) {
     filter += '&f_WT=' + foundJobType.id;
   }
 
+  // done Job Under 10 Applicants
+  // let job_application = true;
+  // if(job_application){
+  //   filter += '&f_EA='+job_application;
+  // }
+
   //easy apply
   filter += '&f_AL=true';
 
@@ -298,6 +391,29 @@ function openLinkedinTab(data) {
         });
       }
     });
+
+    // if (isLinkedInTab == true) {
+    //   console.log("if---")
+    //   chrome.tabs.update(linkedInTab, { url: linkedInUrl, active: true }, function (tab) {
+    //     console.log("tab updated")
+    //     chrome.storage.local.set({ UpdatedlinkedInTab: tab.id }, function () {
+    //       chrome.tabs.onUpdated.addListener(linkedinTabListenerUpdate);
+    //     });
+    //   });
+      // // window.location.href = linkedInUrl;
+      // setTimeout(() => {
+      //   chrome.storage.local.get(['jobData'], function (result) {
+      //     chrome.tabs.sendMessage(linkedInTab, {
+      //       type: 'searchJobs',
+      //       from: 'background',
+      //       jobCount: parseInt(result.jobData.job_count),
+      //       resume: resume ? resume : "",
+      //       additionalInfo: additionalInfo ? additionalInfo : "",
+
+      //     });
+      //   });
+      // }, 5000);
+
 
     // } else {
       console.log("else---")

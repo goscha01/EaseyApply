@@ -32,11 +32,10 @@
   ],
   "content_scripts": [
     {
-      "matches": ["*://*.linkedin.com/*","*://*/*" ],
+      "matches": ["*://*.linkedin.com/*"],
       "js": [
         "/assets/js/jquery-3.4.1.min.js",
         "/config.js",
-        "/content/js/helper.js",
         "/content/js/content.js"
       ],
       "css": ["/content/css/content.css"],

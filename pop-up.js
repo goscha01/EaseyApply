@@ -1,8 +1,8 @@
 $(document).ready(function () {
-    console.log("clicked")
+    console.log("pop-up")
     var stop_button = $("#stop");
     chrome.storage.local.get(['jobData'], function (result) {
-        console.log("ljd;lsdj", result)
+        console.log("jobData", result)
         if (result.jobData && result.jobData.process_start !== "") {
             console.log("Process start is not blank:", result.jobData.process_start);
             // stop_button.css("display", "block")

@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "chrome",
+            "name": "https://www.linkedin.com/feed/",
+            "request": "launch",
+            "url": "https://www.linkedin.com/feed/"
+        }
+    ]
+}

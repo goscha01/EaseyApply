@@ -18,7 +18,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    min-height: 100%;
 }
 
 /* Container styling */
@@ -28,6 +28,7 @@ body {
     max-width: 800px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-height: 100%;
 }
 
 /* Heading styling */
@@ -108,5 +109,5 @@ button:hover {
     justify-content: space-between;
 }
 #stop{
-    display: none;
+    /* display: none; */
 }
