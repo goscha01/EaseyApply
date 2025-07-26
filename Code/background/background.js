@@ -1,14 +1,12 @@
-console.log('background')
-
 // const siteUrl = "https://sachinkumar.me/quickapply/public/";
-// const siteUrl = "https://quickapplyforjobs.com/";
+const siteUrl = "https://quickapplyforjobs.com/";
 
 //const siteUrl = "http://127.0.0.1:8000/";
 let authToken = "";
 let userId = null;
 
 // let apiBaseUrl = `https://sachinkumar.me/quickapply/public/api/`;
-// const apiBaseUrl = `https://quickapplyforjobs.com/api/`;
+const apiBaseUrl = `https://quickapplyforjobs.com/api/`;
 
 //let apiBaseUrl = `http://127.0.0.1:8000/api/`;
 let jobCount;
@@ -26,52 +24,46 @@ var chatgpt_json = {
 };
 
 // Function to get the user ID from cookies
-// function getCookies(domain, name, callback) {
-//   console.log("COOCKIES")
-//   chrome.cookies.get({ "url": domain, "name": name }, function (cookie) {
-//     // console.log(cookie);
-//     if (callback) {
-//       if (cookie && cookie.value) {
-//         callback(cookie.value);
-//       } else {
-//         chrome.storage.local.set({ usertoken: '' }, function () { });
-//       }
-//     }
-//   });
-// }
+function getCookies(domain, name, callback) {
+  chrome.cookies.get({ "url": domain, "name": name }, function (cookie) {
+    // console.log(cookie);
+    if (callback) {
+      if (cookie && cookie.value) {
+        callback(cookie.value);
+      } else {
+        chrome.storage.local.set({ usertoken: '' }, function () { });
+      }
+    }
+  });
+}
 
 // Oninstall though window.open can be blocked by popup blockers
-// chrome.runtime.onInstalled.addListener(function () {
-//   // chrome.alarms.create('forActiveState', { periodInMinutes: 1 / 60 });
-//   console.log("INSTALL")
-//   reloadAllTabsOnStartUp();
-//   return true;
-// });
+chrome.runtime.onInstalled.addListener(function () {
+  chrome.alarms.create('forActiveState', { periodInMinutes: 1 / 60 });
+  reloadAllTabsOnStartUp();
+  return true;
+});
 
 chrome.runtime.onStartup.addListener(function () {
-  console.log("onStartup")
   reloadAllTabsOnStartUp();
 });
 
-// chrome.alarms.onAlarm.addListener(function (alarm) {
-//   console.log("onAlarm")
-//   if (alarm.name == 'forActiveState') {
-//     getCookies(siteUrl, "user_id", function (id) {
-//       chrome.storage.local.set({ usertoken: id }, function () {
-//         userId = id;
-//       });
-//       console.log("id", id);
-//     });
-//     return true;
-//   }
-// });
+chrome.alarms.onAlarm.addListener(function (alarm) {
+  if (alarm.name == 'forActiveState') {
+    getCookies(siteUrl, "user_id", function (id) {
+      chrome.storage.local.set({ usertoken: id }, function () {
+        userId = id;
+      });
+      console.log("id", id);
+    });
+    return true;
+  }
+});
 
 // Reload Tabs on startup and on alarms
 function reloadAllTabsOnStartUp() {
-  console.log("reloadAllTabsOnStartUp")
   chrome.windows.getAll({ populate: true }, function (windows) {
     windows.forEach(function (window) {
-      console.log("WINDOW", window)
       if (window.type == 'normal') {
         window.tabs.forEach(function (tab) {
           if (tab.url && (tab.url.indexOf('linkedin') != -1 || tab.url.indexOf('quickapply') != -1)
@@ -86,7 +78,6 @@ function reloadAllTabsOnStartUp() {
 
 // Listen for message to reload current page
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  console.log("onMessage", message)
   // save apply Linkedin data
   if (message.type == 'applyLinkedin') {
 
@@ -196,7 +187,6 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 
 // Function to update the tab URL and schedule the next update
 function updateTabUrl(allJobLinks, currentTabId, currentIndex) {
-  console.log("updateTabUrl")
   chrome.storage.local.get(['jobData'], function (result) {
     let jobCount = parseInt(result.jobData.job_count);
     console.log(allJobLinks, currentIndex, currentTabId, jobCount, "update tab urls func");
@@ -257,7 +247,6 @@ function updateTabUrl(allJobLinks, currentTabId, currentIndex) {
 }
 
 function onTabUpdated(tabId, changeInfo, tab) {
-  console.log("onTabUpdated")
   // Check if the tab has finished loading
   if (changeInfo.status === 'complete') {
     chrome.tabs.sendMessage(tabId, { action: "tabUpdated" })
@@ -275,7 +264,6 @@ function onTabUpdated(tabId, changeInfo, tab) {
 
 
 async function fetchData(tabId, fileUrl) {
-  console.log("fetchData")
   console.log(tabId);
   console.log(fileUrl);
   const response = await fetch(fileUrl);
@@ -288,7 +276,6 @@ async function fetchData(tabId, fileUrl) {
 }
 
 function openLinkedinTab(data) {
-  console.log("openLinkedinTab", data)
   let url = `https://www.linkedin.com/jobs/search/?`
   var filter = '';
   var keyword = '';
@@ -373,7 +360,6 @@ function openLinkedinTab(data) {
 
   console.log(linkedInUrl, "llllllllllllll");
   chrome.windows.getAll({ populate: true }, function (list) {
-    console.log("getAll", list)
     console.log("list----", list[0].tabs)
     // Assume you have access to chrome.tabs API
     list[0].tabs.forEach(tabs => {
@@ -418,7 +404,6 @@ function openLinkedinTab(data) {
     // } else {
       console.log("else---")
       chrome.storage.local.get(['jobData'], function (result) {
-        console.log("result.jobData",result.jobData)
         chrome.tabs.create(
           {
             url: linkedInUrl,
@@ -455,7 +440,6 @@ function linkedinTabListenerUpdate(tabId, changeInfo, tab) {
 }
 
 function linkedinTabListener(tabId, changeInfo, tab) {
-  console.log("linkedinTabListener", tabId, changeInfo);
   if (changeInfo.status === 'complete' && tabId === linkedinTabId) {
     chrome.storage.local.get(['jobData'], function (result) {
       chrome.tabs.sendMessage(linkedinTabId, {

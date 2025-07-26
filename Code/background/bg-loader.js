@@ -4,7 +4,7 @@ try {
   } catch (e) {
   
     if(typeof(e) == "object"){
-      console.log(e);
+      console.log("bg-loader", e);
     }
   
   }

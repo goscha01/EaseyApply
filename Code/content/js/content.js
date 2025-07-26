@@ -17,6 +17,7 @@ var job_count = 0;
 // countdownPopup.classList.add('countdown-popup');
 jQuery.fn.extend({
     mclick: function () {
+        console.log("check")
         var click_event = document.createEvent("MouseEvents");
         click_event.initMouseEvent(
             "click",
@@ -93,9 +94,7 @@ var atoModel = `<div id="job-auto" class="modal">
             // Listen for message to reload current page
             chrome.runtime.onMessage.addListener((message, sender, send_response) => {
                 // save apply Linkedin data
-                console.log('MESSAGE typre', message)
                 if (message.type == 'searchJobs' && message.from == 'background') {
-                    console.log("llllllll-----------")
                     $this.createStopButton();
                     resume = message.resume;
                     additionalInfo = message.additionalInfo;
@@ -401,8 +400,7 @@ var atoModel = `<div id="job-auto" class="modal">
         filtersJobs: function (job_count) {
             console.log('job_count - ', job_count);
             var jobinterval = setInterval(() => {
-                var jobResultsContainer = $('ul li.scaffold-layout__list-item');
-                // console.log("jobResultsContainer",jobResultsContainer)
+                var jobResultsContainer = $('ul.scaffold-layout__list-container li.scaffold-layout__list-item');
                 if (jobResultsContainer.length > 0) {
                     clearInterval(jobinterval);
                     this.scrollSearch();
@@ -412,10 +410,9 @@ var atoModel = `<div id="job-auto" class="modal">
         },
 
         scrollSearch() {
-            const jobResultsContainer = $('li.scaffold-layout__list-item').parent();
-            console.log("jobResultsContainer",jobResultsContainer)
+            const jobResultsContainer = $('ul.scaffold-layout__list-container');
             if (jobResultsContainer.length) {
-                $('.iKxwTzAPDBXwFVhHIMwHiNVWbQgXDVsgEefavCBY').animate({
+                $('.jobs-search-results-list').animate({
                     scrollTop: jobResultsContainer.height(),
                 },
                     4000
@@ -436,11 +433,11 @@ var atoModel = `<div id="job-auto" class="modal">
 
             var linksCollectionInterval = setInterval(() => {
                 this.scrollSearch();
-                var All_Jobs = $('ul li.scaffold-layout__list-item:not(:has(span.tvm__text.tvm__text--neutral)');
+                var All_Jobs = $('ul.scaffold-layout__list-container li.scaffold-layout__list-item:not(:has(span.tvm__text.tvm__text--neutral)');
                 console.log(All_Jobs, "all_job");
 
                 setTimeout(() => {
-                    if ($('.job-card-container').find('svg').length > 0) {
+                    if ($('.job-card-container__apply-method').find('svg').length > 0) {
 
                         // var filteredLinks = All_Jobs.find('a').filter(function () {
                         //     // Filter only <a> tags with href attribute
@@ -448,24 +445,19 @@ var atoModel = `<div id="job-auto" class="modal">
                         //         return $(this).attr('href');
                         //     }
                         // });
-                        // console.log("job container",$('.job-card-container').find('svg'));
                         var filteredLinks = All_Jobs.each(function () {
-                            console.log("this-----",$(this).find('li:contains("Easy Apply")'))
-                            if ($(this).find('li:contains("Easy Apply")').length > 0) {
-                                console.log($(this).find('a').attr('href'),"pppppppppppp");
+                            if ($(this).find('li.job-card-container__apply-method svg').length > 0) {
+                                console.log($(this).find('a'));
                                 return $(this).find('a').attr('href');
                             }
                         });
                         console.log("filteredLinks", filteredLinks)
-                        // return false;
                         // Extract href text from the filtered links
                         var job_links = filteredLinks.map(function () {
-                           
-                            if ($(this).find('li:contains("Easy Apply")').length > 0) {
-                                console.log($(this).find('a').attr('href'),"pppppppppppp");
+                            if ($(this).find('li.job-card-container__apply-method svg').length > 0) {
+                                console.log($(this).find('a'));
                                 return $(this).find('a').attr('href');
                             }
-                            
                         }).get();
 
 
@@ -935,9 +927,8 @@ var atoModel = `<div id="job-auto" class="modal">
         submitModelform: function () {
 
             var submitButton = setInterval(() => {
-                console.log($('[aria-label="Submit application"]'))
-                if ($('[aria-label="Submit application"]').length > 0) {
-                    $('[aria-label="Submit application"]').click();
+                if ($('button[aria-label="Submit application"]').length > 0) {
+                    $('button[aria-label="Submit application"]').click();
                     clearInterval(submitButton);
                     clearInterval(clickButtonInterval);
 
@@ -1218,12 +1209,9 @@ var atoModel = `<div id="job-auto" class="modal">
                 // console.log("from 1234: ",$(event.target))
                 const closestElementNextBtn = $(event.target).closest('[aria-label="Continue to next step"]');
                 const closestElementReviewBtn = $(event.target).closest('[aria-label="Review your application"]');
-                
                 if ($(closestElementNextBtn).length > 0 || $(closestElementReviewBtn).length > 0) {
                     console.log('Found the closest element with aria-label="Continue to next step".');
                     this.clickNextBtnFunc();
-                }else{
-                    this.submitModelform();
                 }
             });
 
@@ -1232,7 +1220,6 @@ var atoModel = `<div id="job-auto" class="modal">
             console.log("inside the nect btn function")
             setTimeout(() => {
                 if ($('.jobs-easy-apply-modal .mercado-match').length > 0) {
-                    console.log("jnsjsncajsncjan")
                     setTimeout(() => {
                         this.fillFormWithTimeOut();
                     }, 1000);
@@ -1249,12 +1236,9 @@ var atoModel = `<div id="job-auto" class="modal">
                         $('button[aria-label="Review your application"]').click();
                     }, 1000);
 
-                    // this.submitModelform();
-
 
                     setTimeout(() => {
                         if ($('.jobs-easy-apply-modal .mercado-match').length > 0) {
-                            console.log("vjfjfjjfj")
                             this.fillFormWithTimeOut();
 
                         } else {
@@ -1264,27 +1248,16 @@ var atoModel = `<div id="job-auto" class="modal">
                     }, 1500)
 
                 }
-            }, 5000);
+            }, 3000);
 
         },
         fillFormWithTimeOut: function () {
             setTimeout(() => {
-                console.log($('.jobs-easy-apply-content .mercado-match'),$('.form-timer-container'),"ppppppp")
                 if ($('.jobs-easy-apply-content .mercado-match').length > 0 && $('.form-timer-container').length <= 0) {
                     setTimeout(() => {
                         this.startCountdown()
                     }, 500);
 
-                }else{
-                    const closestElementNextBtn = $('[aria-label="Continue to next step"]');
-                const closestElementReviewBtn = $('[aria-label="Review your application"]');
-                
-                if ($(closestElementNextBtn).length > 0 || $(closestElementReviewBtn).length > 0) {
-                    console.log('Found the closest element with aria-label="Continue to next step".');
-                    this.clickNextBtnFunc();
-                }else{
-                    this.submitModelform();
-                }
                 }
             }, 1000)
         }
