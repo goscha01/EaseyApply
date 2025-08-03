@@ -20,6 +20,7 @@ class EasyApplySidePanel {
             this.setupDebugPanel();
             this.updateDebugInfo();
             this.startDebugUpdates();
+            this.setupMessageListener();
             
             // Hide loading and show main content
             this.hideLoadingState();
@@ -48,10 +49,14 @@ class EasyApplySidePanel {
     bindEvents() {
         // Main action buttons
         document.getElementById('gather-jobs-btn')?.addEventListener('click', () => this.gatherJobs());
-        document.getElementById('start-applications-btn')?.addEventListener('click', () => this.startApplications());
+        document.getElementById('start-applications-btn')?.addEventListener('click', () => this.startSingleApplication());
         document.getElementById('fetch-all-descriptions-btn')?.addEventListener('click', () => this.fetchAllDescriptions());
         document.getElementById('view-field-history-btn')?.addEventListener('click', () => this.viewFieldHistory());
         document.getElementById('test-button-detection-btn')?.addEventListener('click', () => this.testButtonDetection());
+        document.getElementById('test-easy-apply-btn')?.addEventListener('click', () => this.testEasyApplyButton());
+        document.getElementById('debug-next-button-btn')?.addEventListener('click', () => this.debugNextButton());
+        document.getElementById('debug-form-detection-btn')?.addEventListener('click', () => this.debugFormDetection());
+        document.getElementById('debug-field-history-btn')?.addEventListener('click', () => this.debugFieldHistory());
         document.getElementById('ping-content-script-btn')?.addEventListener('click', () => this.pingContentScript());
         document.getElementById('toggle-auto-mode-btn')?.addEventListener('click', () => this.toggleAutoMode());
         document.getElementById('view-problematic-fields-btn')?.addEventListener('click', () => this.viewProblematicFields());
@@ -157,14 +162,75 @@ class EasyApplySidePanel {
         }
     }
 
-    async startApplications() {
+    /**
+     * Apply to the current job page only (doesn't require gathered jobs)
+     */
+    async startSingleApplication() {
         try {
-            console.log('🚀 Starting application process...');
+            console.log('🚀 Starting single application process...');
+            
+            // Check if we're on a LinkedIn job page
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length === 0) {
+                this.showError('No active tab found');
+                return;
+            }
+            
+            const currentUrl = tabs[0].url;
+            if (!currentUrl.includes('linkedin.com/jobs/view/')) {
+                this.showError('Please navigate to a LinkedIn job page first');
+                return;
+            }
             
             this.isRunning = true;
-            console.log('🚀 Setting isRunning = true for applications');
+            console.log('🚀 Setting isRunning = true for single application');
             this.updateUI();
-            this.updateStatus('Starting applications...');
+            this.updateStatus('Starting application process...');
+            
+            // Send message to background service worker to start single application
+            this.updateStatus('Processing application...');
+            const response = await chrome.runtime.sendMessage({
+                type: 'startSingleApplication'
+            });
+            
+            console.log('📡 Start single application response:', response);
+            
+            if (response && response.success) {
+                console.log('✅ Single application completed successfully');
+                this.updateStatus('Application completed');
+                this.updateUI();
+                
+                // Add a delay to ensure the user sees the process complete first
+                setTimeout(() => {
+                    this.showSuccess('Successfully applied to current job!');
+                }, 3000);
+                
+            } else {
+                console.error('❌ Failed to complete single application:', response?.error || response?.message);
+                this.isRunning = false;
+                this.updateStatus('Error');
+                this.showError(response?.error || response?.message || 'Failed to apply to current job');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error starting single application:', error);
+            this.isRunning = false;
+            this.updateStatus('Error');
+            this.showError(error.message);
+        }
+    }
+
+    /**
+     * Apply to all gathered jobs (requires job gathering first)
+     */
+    async startApplications() {
+        try {
+            console.log('🚀 Starting bulk application process...');
+            
+            this.isRunning = true;
+            console.log('🚀 Setting isRunning = true for bulk applications');
+            this.updateUI();
+            this.updateStatus('Starting bulk applications...');
             
             // Send message to background service worker to start applications
             const response = await chrome.runtime.sendMessage({
@@ -418,6 +484,17 @@ class EasyApplySidePanel {
             debugPanel.style.display = this.debugMode ? 'block' : 'none';
         }
     }
+    
+    setupMessageListener() {
+        // Listen for progress updates from content script
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+            if (message.type === 'applicationProgressUpdate') {
+                console.log('📊 Received progress update:', message.data);
+                this.updateStatus(message.data.status);
+            }
+            sendResponse({ success: true });
+        });
+    }
 
     toggleDebugPanel() {
         this.debugMode = !this.debugMode;
@@ -486,10 +563,8 @@ class EasyApplySidePanel {
                     console.log('📋 Job list update:', response.jobs);
                     this.updateJobList(response.jobs);
                     
-                    // If jobs are found, enable the start applications button
-                    if (response.jobs.length > 0) {
-                        document.getElementById('start-applications-btn').disabled = false;
-                    }
+                    // Note: Single application button is always enabled (doesn't need gathered jobs)
+                    // Bulk applications would need gathered jobs, but we're using single application
                 }
                 
                 // Check if gathering is complete
@@ -647,10 +722,131 @@ class EasyApplySidePanel {
     async testButtonDetection() {
         try {
             console.log('🔍 Testing button detection...');
-            this.showSuccess('Button detection test functionality coming soon!');
+            
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length === 0) {
+                this.showError('No active tab found');
+                return;
+            }
+            
+            const response = await chrome.tabs.sendMessage(tabs[0].id, {
+                type: 'testButtonDetection'
+            });
+            
+            if (response && response.success) {
+                this.showSuccess('Button detection test completed - check console');
+            } else {
+                this.showError(response?.error || 'Button detection test failed');
+            }
+            
         } catch (error) {
             console.error('❌ Error testing button detection:', error);
+            this.showError('Failed to test button detection');
+        }
+    }
+
+    async testEasyApplyButton() {
+        try {
+            console.log('🔍 Testing Easy Apply button detection...');
+            
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length === 0) {
+                this.showError('No active tab found');
+                return;
+            }
+            
+            const response = await chrome.tabs.sendMessage(tabs[0].id, {
+                type: 'testEasyApplyButton'
+            });
+            
+            if (response && response.success) {
+                this.showSuccess('Easy Apply button found - check console for details');
+                console.log('✅ Easy Apply button details:', response.buttonDetails);
+            } else {
+                this.showError(response?.error || response?.message || 'Easy Apply button not found');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error testing Easy Apply button:', error);
             this.showError(error.message);
+        }
+    }
+
+    async debugNextButton() {
+        try {
+            console.log('🔍 Debugging Next button detection...');
+            
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length === 0) {
+                this.showError('No active tab found');
+                return;
+            }
+            
+            const response = await chrome.tabs.sendMessage(tabs[0].id, {
+                type: 'debugNextButton'
+            });
+            
+            if (response && response.success) {
+                this.showSuccess('Next button debug completed - check console');
+            } else {
+                this.showError(response?.message || 'Next button debug failed');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error debugging Next button:', error);
+            this.showError('Failed to debug Next button');
+        }
+    }
+
+    async debugFormDetection() {
+        try {
+            console.log('🔍 Debugging form detection...');
+            
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length === 0) {
+                this.showError('No active tab found');
+                return;
+            }
+            
+            const response = await chrome.tabs.sendMessage(tabs[0].id, {
+                type: 'debugFormDetection'
+            });
+            
+            if (response && response.success) {
+                this.showSuccess('Form detection debug completed - check console');
+            } else {
+                this.showError(response?.message || 'Form detection debug failed');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error debugging form detection:', error);
+            this.showError('Failed to debug form detection');
+        }
+    }
+
+    async debugFieldHistory() {
+        try {
+            console.log('📋 Debugging field history...');
+            
+            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tabs.length === 0) {
+                this.showError('No active tab found');
+                return;
+            }
+            
+            const response = await chrome.tabs.sendMessage(tabs[0].id, {
+                type: 'debugFieldHistory'
+            });
+            
+            if (response && response.success) {
+                this.showSuccess('Field history debug completed - check console');
+            } else {
+                this.showError(response?.message || 'Field history debug failed');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error debugging field history:', error);
+            this.showError('Failed to debug field history');
         }
     }
 

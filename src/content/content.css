@@ -134,6 +134,25 @@
   box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1) !important;
 }
 
+/* Auto-filled field styling */
+.easyapply-auto-filled {
+  background-color: #dcfce7 !important; /* Light green background */
+  border: 2px solid #22c55e !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1) !important;
+  color: #000000 !important; /* Black text for visibility */
+  font-weight: 500 !important;
+}
+
+.easyapply-auto-filled::placeholder {
+  color: #374151 !important; /* Dark gray placeholder text */
+}
+
+.easyapply-auto-filled:focus {
+  background-color: #bbf7d0 !important; /* Slightly darker green when focused */
+  border-color: #16a34a !important;
+  color: #000000 !important;
+}
+
 /* Button highlighting */
 .easyapply-highlight {
   background: rgba(102, 126, 234, 0.1) !important;

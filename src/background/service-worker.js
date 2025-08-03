@@ -428,6 +428,23 @@ class BackgroundServiceWorker {
           const singleStartResult = await this.startSingleApplication(message.data);
           sendResponse(singleStartResult);
           break;
+          
+        case 'updateApplicationProgress':
+          console.log('📊 Application progress update:', message.data);
+          // Forward progress update to sidepanel
+          try {
+            const sidepanels = await chrome.sidePanel.getAll({ windowId: await this.getCurrentWindowId() });
+            for (const sidepanel of sidepanels) {
+              await chrome.tabs.sendMessage(sidepanel.tabId, {
+                type: 'applicationProgressUpdate',
+                data: message.data
+              });
+            }
+          } catch (error) {
+            console.log('⚠️ Could not forward progress update to sidepanel:', error.message);
+          }
+          sendResponse({ success: true });
+          break;
 
         case 'clickNextButton':
           console.log('🚀 Clicking Next button in current tab');
@@ -816,10 +833,13 @@ class BackgroundServiceWorker {
    */
   async isContentScriptReady(tabId) {
     try {
+      console.log(`🔍 Checking if content script is ready for tab ${tabId}...`);
       const response = await this.sendMessageToTab(tabId, { type: 'checkReady' });
-      return response && response.ready === true;
+      const isReady = response && response.ready === true;
+      console.log(`📡 Content script response:`, response, `Ready: ${isReady}`);
+      return isReady;
     } catch (error) {
-      console.log('Content script not ready yet:', error.message);
+      console.log('❌ Content script not ready yet:', error.message);
       return false;
     }
   }
@@ -828,14 +848,21 @@ class BackgroundServiceWorker {
    * Wait for content script to be ready
    */
   async waitForContentScriptReady(tabId, maxAttempts = 30) {
+    console.log(`🔄 Waiting for content script to be ready (max ${maxAttempts} attempts)...`);
+    
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`🔍 Attempt ${attempt}/${maxAttempts} - checking content script readiness...`);
+      
       if (await this.isContentScriptReady(tabId)) {
+        console.log('✅ Content script is ready!');
         return true;
       }
       
-
+      // Wait 1 second between attempts
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
     
+    console.log('❌ Content script not ready after all attempts');
     return false;
   }
 
@@ -1816,6 +1843,23 @@ class BackgroundServiceWorker {
       
       console.log('🚀 Starting application for job at:', currentUrl);
       
+      // Check if content script is already ready before injecting
+      const isAlreadyReady = await this.isContentScriptReady(currentTab.id);
+      if (!isAlreadyReady) {
+        // Inject content script if not already present
+        try {
+          await chrome.scripting.executeScript({
+            target: { tabId: currentTab.id },
+            files: ['src/content/content.js']
+          });
+          console.log('✅ Content script injected successfully');
+        } catch (error) {
+          console.log('⚠️ Content script injection failed (might already be present):', error.message);
+        }
+      } else {
+        console.log('✅ Content script already ready, skipping injection');
+      }
+      
       // Wait for content script to be ready
       const contentScriptReady = await this.waitForContentScriptReady(currentTab.id);
       if (!contentScriptReady) {
@@ -1823,26 +1867,35 @@ class BackgroundServiceWorker {
         return { success: false, message: 'Content script not ready' };
       }
       
-      // Try to click EasyApply button
+      // Start the complete application process
       console.log('📡 Sending clickEasyApply message to tab:', currentTab.id);
-      const response = await this.sendMessageToTab(currentTab.id, {
-        type: 'clickEasyApply',
-        data: { jobUrl: currentUrl }
-      });
       
-      console.log('📡 Response from content script:', response);
-      
-      if (response && response.success) {
-        console.log('✅ Successfully applied to job');
-        return { 
-          success: true, 
-          message: 'Successfully applied to job'
-        };
-      } else {
-        console.log('❌ Failed to apply to job:', response?.message);
+      try {
+        const response = await this.sendMessageToTabWithTimeout(currentTab.id, {
+          type: 'clickEasyApply',
+          data: { jobUrl: currentUrl }
+        }, 60000); // 60 second timeout for complete application process
+        
+        console.log('📡 Response from content script:', response);
+        
+        if (response && response.success) {
+          console.log('✅ Successfully completed application process');
+          return { 
+            success: true, 
+            message: 'Successfully applied to job'
+          };
+        } else {
+          console.log('❌ Failed to apply to job:', response?.message || response?.error);
+          return { 
+            success: false, 
+            message: response?.message || response?.error || 'Failed to apply to job'
+          };
+        }
+      } catch (error) {
+        console.error('❌ Error during application process:', error);
         return { 
           success: false, 
-          message: response?.message || 'Failed to apply to job'
+          message: `Application process failed: ${error.message}`
         };
       }
       
