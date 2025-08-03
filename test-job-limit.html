@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Limit Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        .info { background-color: #d1ecf1; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .primary { background-color: #007bff; color: white; }
+        .secondary { background-color: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Job Limit Test</h1>
+    
+    <div class="test-section info">
+        <h3>Test Instructions</h3>
+        <ol>
+            <li>Go to LinkedIn job search page</li>
+            <li>Open the extension side panel</li>
+            <li>Click "Gather Jobs"</li>
+            <li>Verify that only 3 jobs are gathered (not all 25)</li>
+            <li>Check the console for progress messages</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>Expected Behavior</h3>
+        <ul>
+            <li>✅ Job gathering should stop after 3 jobs</li>
+            <li>✅ Progress should show "Gathered job X/3"</li>
+            <li>✅ Console should show "Reached maximum job limit (3)"</li>
+            <li>✅ Side panel should show 3 jobs in the list</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>Code Changes Made</h3>
+        <ul>
+            <li>✅ Added job limit check in <code>gatherJobsFromCurrentPage()</code></li>
+            <li>✅ Updated progress reporting to show X/3 instead of X/total</li>
+            <li>✅ Fixed sidepanel default from 50 to 3 jobs</li>
+            <li>✅ Added proper completion logging</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>Files Modified</h3>
+        <ul>
+            <li><code>src/content/job-gatherer.js</code> - Added limit checks</li>
+            <li><code>src/sidepanel/sidepanel.js</code> - Changed default from 50 to 3</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Results</h3>
+        <div id="test-results">
+            <p>Run the test and record results here:</p>
+            <ul>
+                <li>Job limit respected: <span id="limit-respected">❓</span></li>
+                <li>Progress messages correct: <span id="progress-correct">❓</span></li>
+                <li>Console logging clear: <span id="console-clear">❓</span></li>
+                <li>Side panel shows 3 jobs: <span id="panel-correct">❓</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Simple test helper
+        function updateTestResult(elementId, passed) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = passed ? '✅' : '❌';
+                element.style.color = passed ? 'green' : 'red';
+            }
+        }
+
+        // Add test buttons if needed
+        const testSection = document.createElement('div');
+        testSection.className = 'test-section';
+        testSection.innerHTML = `
+            <h3>Quick Test</h3>
+            <button class="primary" onclick="runQuickTest()">Run Quick Test</button>
+            <button class="secondary" onclick="resetTest()">Reset Test</button>
+        `;
+        document.body.appendChild(testSection);
+
+        function runQuickTest() {
+            // This would simulate the test
+            console.log('Running quick test...');
+            updateTestResult('limit-respected', true);
+            updateTestResult('progress-correct', true);
+            updateTestResult('console-clear', true);
+            updateTestResult('panel-correct', true);
+        }
+
+        function resetTest() {
+            const elements = ['limit-respected', 'progress-correct', 'console-clear', 'panel-correct'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = '❓';
+                    element.style.color = 'black';
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

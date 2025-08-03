@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyApply - LinkedIn Job Automation</title>
+    <link href="popup.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="popup-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <img src="../icons/icon32.png" alt="EasyApply" class="logo-img">
+                <h1 class="app-title">EasyApply</h1>
+            </div>
+            <div class="status-indicator" id="status-indicator">
+                <span class="status-dot" id="status-dot"></span>
+                <span class="status-text" id="status-text">Ready</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Settings Form -->
+            <div class="form-section" id="settings-form">
+                <h3 class="section-title">Job Search Settings</h3>
+                
+                <div class="form-group">
+                    <label for="skills" class="form-label">
+                        <i class="icon">💼</i>
+                        Skills / Job Title
+                    </label>
+                    <input 
+                        type="text" 
+                        id="skills" 
+                        class="form-control" 
+                        placeholder="e.g., React, Data Analyst, Marketing Manager"
+                        maxlength="100"
+                    >
+                    <small class="form-help">Enter a single skill or job title</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="job_location" class="form-label">
+                        <i class="icon">📍</i>
+                        Location (Optional)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="job_location" 
+                        class="form-control" 
+                        placeholder="e.g., Bangalore, Delhi, Remote"
+                        maxlength="50"
+                    >
+                    <small class="form-help">Enter job location or leave empty for any location</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="job_count" class="form-label">
+                        <i class="icon">📊</i>
+                        Number of Jobs
+                    </label>
+                    <input 
+                        type="number" 
+                        id="job_count" 
+                        class="form-control" 
+                        min="1" 
+                        max="50" 
+                        value="10"
+                    >
+                    <small class="form-help">Maximum 50 jobs per session</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="job_type" class="form-label">
+                        <i class="icon">🏢</i>
+                        Job Type
+                    </label>
+                    <select id="job_type" class="form-control">
+                        <option value="">Any Type</option>
+                        <option value="Remote">Remote</option>
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="On-Site">On-Site</option>
+                    </select>
+                    <small class="form-help">Filter by job type (optional)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="delay" class="form-label">
+                        <i class="icon">⏱️</i>
+                        Delay Between Actions (seconds)
+                    </label>
+                    <input 
+                        type="number" 
+                        id="delay" 
+                        class="form-control" 
+                        min="1" 
+                        max="10" 
+                        value="2"
+                    >
+                    <small class="form-help">Delay between job applications (1-10 seconds)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="icon">📋</i>
+                        Job Description Tools
+                    </label>
+                    <div class="button-row">
+                        <button id="fetch-description-btn" class="btn btn-info btn-sm">
+                            <i class="icon">🔍</i>
+                            Fetch Description
+                        </button>
+                        <button id="open-description-btn" class="btn btn-secondary btn-sm" disabled>
+                            <i class="icon">📄</i>
+                            Open in Window
+                        </button>
+                        <button id="view-saved-btn" class="btn btn-secondary btn-sm">
+                            <i class="icon">📚</i>
+                            View Saved
+                        </button>
+                    </div>
+                    <small class="form-help">Extract job description from current LinkedIn page</small>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section" id="progress-section" style="display: none;">
+                <h3 class="section-title">Application Progress</h3>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">0/10 jobs applied</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="applied-count">0</div>
+                        <div class="stat-label">Applied</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="failed-count">0</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="success-rate">0%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                </div>
+
+                <div class="current-job" id="current-job" style="display: none;">
+                    <div class="current-job-title">Current Job:</div>
+                    <div class="current-job-name" id="current-job-name">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Saved Descriptions Section -->
+            <div class="saved-descriptions-section" id="saved-descriptions-section" style="display: none;">
+                <div class="saved-descriptions-header">
+                    <h3 class="section-title">
+                        <i class="icon">📚</i>
+                        Saved Job Descriptions
+                    </h3>
+                    <button id="back-to-settings-btn" class="btn btn-secondary btn-sm">
+                        <i class="icon">←</i>
+                        Back to Settings
+                    </button>
+                </div>
+                <div class="saved-descriptions-list" id="saved-descriptions-list">
+                    <!-- Saved descriptions will be loaded here -->
+                </div>
+                <div class="saved-descriptions-empty" id="saved-descriptions-empty" style="display: none;">
+                    <div class="empty-state">
+                        <i class="icon">📝</i>
+                        <p>No saved job descriptions yet.</p>
+                        <small>Fetch descriptions from LinkedIn job pages to see them here.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Section -->
+            <div class="error-section" id="error-section" style="display: none;">
+                <h3 class="section-title error-title">
+                    <i class="icon">⚠️</i>
+                    Recent Errors
+                </h3>
+                <div class="error-list" id="error-list"></div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button id="start-btn" class="btn btn-primary btn-lg">
+                <i class="icon">🚀</i>
+                Start Applying
+            </button>
+            <button id="stop-btn" class="btn btn-danger btn-lg" style="display: none;">
+                <i class="icon">⏹️</i>
+                Stop Process
+            </button>
+            <button id="settings-btn" class="btn btn-secondary btn-sm">
+                <i class="icon">⚙️</i>
+                Settings
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="version">v1.0.0</div>
+            <div class="links">
+                <a href="#" id="help-link">Help</a>
+                <a href="#" id="feedback-link">Feedback</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Extracting job description...</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/toastr.min.js" defer></script>
+    <script src="popup.js" defer></script>
+</body>
+</html> 

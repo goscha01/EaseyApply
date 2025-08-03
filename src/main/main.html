@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>EasyApply - LinkedIn Job Automation</title>
+    <link href="main.css" rel="stylesheet">
+</head>
+<body class="h-full font-sans text-base">
+    <div class="h-full" id="root">
+        <div class="flex h-full flex-col text-slate-900">
+            <!-- Loading State -->
+            <div id="loading-state" class="flex animate-pulse flex-col items-center gap-4 px-4 py-12">
+                <svg class="size-12 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <div class="text-lg font-medium">Loading EasyApply...</div>
+            </div>
+
+            <!-- Main Content -->
+            <div id="main-content" class="flex h-full flex-col" style="display: none;">
+                <!-- Header -->
+                <header class="flex h-14 shrink-0 items-center justify-between border-b border-b-slate-200 px-4">
+                    <div class="flex items-center gap-3">
+                        <img class="h-8 w-8" src="../icons/icon32.png" alt="EasyApply">
+                        <h1 class="text-lg font-semibold">EasyApply</h1>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2">
+                            <div class="h-2 w-2 rounded-full bg-green-500"></div>
+                            <span id="status-text" class="text-sm text-slate-600">Ready</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Content Area -->
+                <div class="min-h-0 grow overflow-auto">
+                    <!-- Settings Form -->
+                    <div id="settings-form" class="p-6">
+                        <h2 class="mb-6 text-xl font-semibold">Job Search Settings</h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label for="skills" class="block text-sm font-medium text-slate-700 mb-2">
+                                    💼 Skills / Job Title
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="skills" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="e.g., React, Data Analyst, Marketing Manager"
+                                    maxlength="100"
+                                >
+                                <p class="mt-1 text-xs text-slate-500">Enter a single skill or job title</p>
+                            </div>
+
+                            <div>
+                                <label for="job_location" class="block text-sm font-medium text-slate-700 mb-2">
+                                    📍 Location (Optional)
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="job_location" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="e.g., Bangalore, Delhi, Remote"
+                                    maxlength="50"
+                                >
+                                <p class="mt-1 text-xs text-slate-500">Enter job location or leave empty for any location</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="job_count" class="block text-sm font-medium text-slate-700 mb-2">
+                                        📊 Number of Jobs
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="job_count" 
+                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        min="1" 
+                                        max="50" 
+                                        value="10"
+                                    >
+                                    <p class="mt-1 text-xs text-slate-500">Maximum 50 jobs per session</p>
+                                </div>
+
+                                <div>
+                                    <label for="delay" class="block text-sm font-medium text-slate-700 mb-2">
+                                        ⏱️ Delay (seconds)
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="delay" 
+                                        class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        min="1" 
+                                        max="10" 
+                                        value="2"
+                                    >
+                                    <p class="mt-1 text-xs text-slate-500">Delay between applications</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="job_type" class="block text-sm font-medium text-slate-700 mb-2">
+                                    🏢 Job Type
+                                </label>
+                                <select id="job_type" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Any Type</option>
+                                    <option value="Remote">Remote</option>
+                                    <option value="Hybrid">Hybrid</option>
+                                    <option value="On-Site">On-Site</option>
+                                </select>
+                                <p class="mt-1 text-xs text-slate-500">Filter by job type (optional)</p>
+                            </div>
+
+                            <div class="border-t pt-4">
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    📋 Job Description Tools
+                                </label>
+                                <div class="flex gap-2 flex-wrap">
+                                    <button id="fetch-description-btn" class="px-3 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors">
+                                        🔍 Fetch Description
+                                    </button>
+                                    <button id="open-description-btn" class="px-3 py-2 bg-slate-500 text-white rounded-md text-sm hover:bg-slate-600 transition-colors" disabled>
+                                        📄 Open in Window
+                                    </button>
+                                    <button id="view-saved-btn" class="px-3 py-2 bg-slate-500 text-white rounded-md text-sm hover:bg-slate-600 transition-colors">
+                                        📚 View Saved
+                                    </button>
+                                </div>
+                                <p class="mt-1 text-xs text-slate-500">Extract job description from current LinkedIn page</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div id="progress-section" class="p-6" style="display: none;">
+                        <h2 class="mb-6 text-xl font-semibold">Application Progress</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-slate-50 rounded-lg p-4">
+                                <div class="mb-2">
+                                    <div class="w-full bg-slate-200 rounded-full h-2">
+                                        <div id="progress-fill" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <p id="progress-text" class="text-sm text-slate-600 text-center">0/10 jobs applied</p>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="text-center">
+                                    <div id="applied-count" class="text-2xl font-bold text-green-600">0</div>
+                                    <div class="text-xs text-slate-500">Applied</div>
+                                </div>
+                                <div class="text-center">
+                                    <div id="failed-count" class="text-2xl font-bold text-red-600">0</div>
+                                    <div class="text-xs text-slate-500">Failed</div>
+                                </div>
+                                <div class="text-center">
+                                    <div id="success-rate" class="text-2xl font-bold text-blue-600">0%</div>
+                                    <div class="text-xs text-slate-500">Success Rate</div>
+                                </div>
+                            </div>
+
+                            <div id="current-job" class="bg-blue-50 border border-blue-200 rounded-lg p-4" style="display: none;">
+                                <div class="text-sm text-blue-600 font-medium">Current Job:</div>
+                                <div id="current-job-name" class="text-sm text-slate-700">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Saved Descriptions Section -->
+                    <div id="saved-descriptions-section" class="p-6" style="display: none;">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-semibold">📚 Saved Job Descriptions</h2>
+                            <button id="back-to-settings-btn" class="px-3 py-2 bg-slate-500 text-white rounded-md text-sm hover:bg-slate-600 transition-colors">
+                                ← Back to Settings
+                            </button>
+                        </div>
+                        
+                        <div id="saved-descriptions-list" class="space-y-3">
+                            <!-- Saved descriptions will be loaded here -->
+                        </div>
+                        
+                        <div id="saved-descriptions-empty" class="text-center py-12" style="display: none;">
+                            <div class="text-4xl mb-4">📝</div>
+                            <p class="text-lg font-medium text-slate-700 mb-2">No saved job descriptions yet.</p>
+                            <p class="text-sm text-slate-500">Fetch descriptions from LinkedIn job pages to see them here.</p>
+                        </div>
+                    </div>
+
+                    <!-- Error Section -->
+                    <div id="error-section" class="p-6" style="display: none;">
+                        <h2 class="mb-6 text-xl font-semibold text-red-600">⚠️ Recent Errors</h2>
+                        <div id="error-list" class="space-y-2">
+                            <!-- Errors will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="border-t border-slate-200 p-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex gap-4">
+                            <button id="start-btn" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
+                                🚀 Start Applying
+                            </button>
+                            <button id="stop-btn" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors" style="display: none;">
+                                ⏹️ Stop Process
+                            </button>
+                            <button id="settings-btn" class="px-3 py-2 bg-slate-500 text-white rounded-md text-sm hover:bg-slate-600 transition-colors">
+                                ⚙️ Settings
+                            </button>
+                        </div>
+                        <div class="text-xs text-slate-500">v1.0.0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+                <div class="bg-white rounded-lg p-6 text-center">
+                    <svg class="mx-auto mb-4 h-8 w-8 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <div id="loading-text" class="text-sm font-medium">Extracting job description...</div>
+                </div>
+            </div>
+
+            <!-- Debug Panel -->
+            <div id="debug-panel" class="fixed bottom-4 right-4 bg-black bg-opacity-90 text-white rounded-lg p-4 text-xs max-w-xs z-40" style="display: none;">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="font-medium">🔍 Debug Info</h4>
+                    <button id="toggle-debug" class="text-xs bg-white bg-opacity-20 px-2 py-1 rounded">Toggle</button>
+                </div>
+                <div class="space-y-1">
+                    <div><strong>Window:</strong> <span id="window-status">Loading...</span></div>
+                    <div><strong>Extension:</strong> <span id="extension-id">Loading...</span></div>
+                    <div><strong>Storage:</strong> <span id="storage-status">Loading...</span></div>
+                    <div><strong>LinkedIn:</strong> <span id="linkedin-tab">Loading...</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html> 

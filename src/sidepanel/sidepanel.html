@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Job Search Assistant - Side Panel</title>
+    <link href="sidepanel.css" rel="stylesheet">
+</head>
+<body class="h-full font-sans text-base">
+    <div class="h-full" id="root">
+        <div class="flex h-full flex-col text-slate-900">
+            <!-- Loading State -->
+            <div id="loading-state" class="flex animate-pulse flex-col items-center gap-4 px-4 py-12">
+                <svg class="size-8 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <div class="text-sm font-medium">Loading Job Search Assistant...</div>
+            </div>
+
+            <!-- Main Content -->
+            <div id="main-content" class="flex h-full flex-col" style="display: none;">
+                <!-- Header -->
+                <header class="flex h-12 shrink-0 items-center justify-between border-b border-b-slate-200 px-3 bg-white">
+                    <div class="flex items-center gap-2">
+                        <img class="h-6 w-6" src="../../icons/icon32.png" alt="EasyApply">
+                        <h1 class="text-sm font-semibold">Job Search Assistant</h1>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <div class="h-2 w-2 rounded-full bg-green-500"></div>
+                        <span id="status-text" class="text-xs text-slate-600">Ready</span>
+                    </div>
+                </header>
+
+                <!-- Content Area -->
+                <div class="min-h-0 grow overflow-auto">
+                    <!-- Main Interface -->
+                    <div id="settings-form" class="p-3">
+                        <h2 class="mb-3 text-sm font-semibold">Job Gathering</h2>
+                        
+                        <div class="space-y-3">
+                            <!-- Job Gathering Section -->
+                            <div class="space-y-2">
+                                <h3 class="text-xs font-semibold text-slate-700">📋 Job Gathering</h3>
+                                <button id="gather-jobs-btn" class="w-full px-3 py-2 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors">
+                                    🔍 Gather Jobs
+                                </button>
+                            </div>
+
+                            
+
+                            <!-- Gathering Progress -->
+                            <div id="gathering-progress" class="mb-3" style="display: none;">
+                                <!-- Progress will be shown here during gathering -->
+                            </div>
+
+                            <!-- Job List -->
+                            <div class="border-t pt-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xs font-semibold text-slate-700">📋 Found Jobs</h3>
+                                    <span id="job-count" class="text-xs text-slate-500">0 jobs</span>
+                                </div>
+                                
+                                <div id="job-list" class="space-y-2 max-h-48 overflow-y-auto">
+                                    <!-- Job items will be loaded here -->
+                                </div>
+                                
+                                <div id="job-list-empty" class="text-center py-4" style="display: none;">
+                                    <div class="text-lg mb-1">🔍</div>
+                                    <p class="text-xs text-slate-500">No jobs found yet.</p>
+                                    <p class="text-xs text-slate-400">Click "Gather Jobs" to search for positions.</p>
+                                </div>
+                                
+                                <div class="mt-3 pt-3 border-t space-y-2">
+                                    <button id="start-applications-btn" class="w-full px-3 py-2 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition-colors">
+                                        🚀 Apply to Current Job
+                                    </button>
+                                    <button id="fetch-all-descriptions-btn" class="w-full px-3 py-2 bg-purple-500 text-white rounded text-xs hover:bg-purple-600 transition-colors">
+                                        📄 Fetch All Descriptions
+                                    </button>
+                                    <button id="view-field-history-btn" class="w-full px-3 py-2 bg-orange-500 text-white rounded text-xs hover:bg-orange-600 transition-colors">
+                                        📋 View Field History
+                                    </button>
+                                    <button id="test-button-detection-btn" class="w-full px-3 py-2 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition-colors">
+                                        🔍 Test Button Detection
+                                    </button>
+                                    <button id="ping-content-script-btn" class="w-full px-3 py-2 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 transition-colors">
+                                        📡 Ping Content Script
+                                    </button>
+                                    <button id="toggle-auto-mode-btn" class="w-full px-3 py-2 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors">
+                                        🔄 Toggle Auto Mode
+                                    </button>
+                                    <button id="view-problematic-fields-btn" class="w-full px-3 py-2 bg-yellow-500 text-white rounded text-xs hover:bg-yellow-600 transition-colors">
+                                        ⚠️ View Problematic Fields
+                                    </button>
+                                    <button id="stop-process-btn" class="w-full px-3 py-2 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors" disabled>
+                                        ⏹️ Stop Process (Not Running)
+                                    </button>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div id="progress-section" class="p-3" style="display: none;">
+                        <h2 class="mb-3 text-sm font-semibold">Application Progress</h2>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-slate-50 rounded p-2">
+                                <div class="mb-1">
+                                    <div class="w-full bg-slate-200 rounded-full h-1">
+                                        <div id="progress-fill" class="bg-blue-500 h-1 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <p id="progress-text" class="text-xs text-slate-600 text-center">0/10 jobs applied</p>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="text-center">
+                                    <div id="applied-count" class="text-lg font-bold text-green-600">0</div>
+                                    <div class="text-xs text-slate-500">Applied</div>
+                                </div>
+                                <div class="text-center">
+                                    <div id="failed-count" class="text-lg font-bold text-red-600">0</div>
+                                    <div class="text-xs text-slate-500">Failed</div>
+                                </div>
+                                <div class="text-center">
+                                    <div id="success-rate" class="text-lg font-bold text-blue-600">0%</div>
+                                    <div class="text-xs text-slate-500">Success</div>
+                                </div>
+                            </div>
+
+                            <div id="current-job" class="bg-blue-50 border border-blue-200 rounded p-2" style="display: none;">
+                                <div class="text-xs text-blue-600 font-medium">Current Job:</div>
+                                <div id="current-job-name" class="text-xs text-slate-700">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+                <div class="bg-white rounded p-4 text-center">
+                    <svg class="mx-auto mb-2 h-6 w-6 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <div id="loading-text" class="text-xs font-medium whitespace-pre-line">Extracting job description...</div>
+                </div>
+            </div>
+
+            <!-- Debug Panel -->
+            <div id="debug-panel" class="fixed bottom-2 right-2 bg-black bg-opacity-90 text-white rounded p-2 text-xs max-w-32 z-40" style="display: none;">
+                <div class="flex justify-between items-center mb-1">
+                    <h4 class="font-medium text-xs">🔍 Debug</h4>
+                    <button id="toggle-debug" class="text-xs bg-white bg-opacity-20 px-1 py-0.5 rounded">Toggle</button>
+                </div>
+                <div class="space-y-0.5 text-xs">
+                    <div><strong>W:</strong> <span id="window-status">Loading...</span></div>
+                    <div><strong>E:</strong> <span id="extension-id">Loading...</span></div>
+                    <div><strong>S:</strong> <span id="storage-status">Loading...</span></div>
+                    <div><strong>L:</strong> <span id="linkedin-tab">Loading...</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="sidepanel.js"></script>
+</body>
+</html> 
